@@ -38,12 +38,16 @@ class User
         $this->created = new DateTime();
     }
 
+    public function getId(){ return $this->id; }
     public function getFirstName(){ return $this->firstName; }
     public function getLastName(){ return $this->lastName; }
     public function getEmail(){ return $this->email; }
     public function getType(){ return $this->type; }
     public function getIsActive(){ return $this->isActive; }
     public function getCreated(){ return $this->created; }
+
+    public function getViewUrl(){ return sprintf('/mcs/web/front.php/users/%s', $this->id); }
+    public function getEditUrl(){ return sprintf('/mcs/web/front.php/users/%s/edit', $this->id); }
 
     public function setId($id){ return $this->id = $id; }
     public function setType($typeInt){ return $this->type = $typeInt; }

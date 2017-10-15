@@ -39,14 +39,16 @@ class Framework
         return getenv('MCS_PASSWORD');
     }
 
-    public function handle(Request $request)
+    public function handle(Request $request, $twig)
     {
         $this->matcher->getContext()->fromRequest($request);
         try {
-            $request->attributes->add($this->matcher->match($request->getPathInfo()));
+            $route = $this->matcher->match($request->getPathInfo());
+            $request->attributes->add($route);
             $controller = $this->controllerResolver->getController($request);
             $controllerObj = $controller[0];
             $controllerObj->setConnection($this->getDBString(), $this->getDBUser(), $this->getDBPass());
+            $controllerObj->setTwig($twig);
             $arguments = $this->argumentResolver->getArguments($request, $controller);
             return call_user_func_array($controller, $arguments);
 

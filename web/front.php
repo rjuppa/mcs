@@ -25,6 +25,8 @@ function render_template($request)
 
 $request = Request::createFromGlobals();
 $routes = include __DIR__.'/../src/app.php';
+$loader = new Twig_Loader_Filesystem(__DIR__.'/../templates');
+$twig = new Twig_Environment($loader);
 
 $context = new Routing\RequestContext();
 $matcher = new Routing\Matcher\UrlMatcher($routes, $context);
@@ -34,5 +36,5 @@ $argumentResolver = new ArgumentResolver();
 
 require __DIR__.'/../src/Framework.php';
 $framework = new Framework($matcher, $controllerResolver, $argumentResolver);
-$response = $framework->handle($request);
+$response = $framework->handle($request, $twig);
 $response->send();

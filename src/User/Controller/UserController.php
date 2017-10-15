@@ -28,15 +28,14 @@ class UserController extends Controller
 
     public function indexAction(Request $request)
     {
+        $this->request = $request;
         $service = $this->getService();
-        $users = array();
+        $users = $service->getUsersAll();
         try{
-            $users = $service->getUsersAll();
-            foreach($users as $user){
-                print_r('-------------<br><pre>');
-                print_r($user->getEmail());
-                print_r('-------------</pre></br>');
-            }
+            //$users = $service->getUsersAll();
+            //foreach($users as $user){
+            //    $users[$user->getEmail()] = $user->getEmail();
+            //}
 
         }
         catch(PDOException $e)
@@ -47,7 +46,10 @@ class UserController extends Controller
             $service->close();
         }
 
-        return new Response('All users...');
+        $context = array(
+            'users' => $users);
+        return $this->render('user/index.html.twig', $context);
+
     }
 
 
@@ -114,7 +116,9 @@ class UserController extends Controller
             $service->close();
         }
 
-        return new Response('User= ' . $user->getEmail());
+        $context = array(
+            'user' => $user);
+        return $this->render('user/view.html.twig', $context);
     }
 
     public function deleteAction(Request $request, $id)
