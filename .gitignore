@@ -7,6 +7,7 @@ composer.phar
 
 /.idea
 /_ide_helper.php
+/web/.idea
 
 /app/config/packages
 /public/packages
