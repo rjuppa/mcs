@@ -28,6 +28,27 @@ class UserService extends BaseService
         return $user;
     }
 
+    public function authenticate($email, $pass)
+    {
+        $hash = null;
+        $user = $this->getUserByEmail($email);
+        if( $user ){
+            $hash = $this->getHashByEmail($email);
+        }
+        else{
+            throw new UserNotFoundException();
+        }
+
+        if( md5($pass) == $hash ){
+            // success
+            return $user;
+        }
+
+        // Login failed
+        return null;
+    }
+
+
     public function getUsersAll(){
         $users = array();
         $sql = "SELECT * FROM users WHERE deleted=0";
@@ -66,6 +87,19 @@ class UserService extends BaseService
             throw new UserNotFoundException();
         }
         return $this->mapUser($row);
+    }
+
+    public function getHashByEmail($email = null){
+        $sql = "SELECT password_hash FROM users WHERE deleted=0 AND is_active=1 AND email=:email";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $email = strtolower($email);
+        $stmt->execute();
+        $hash = $stmt->fetchColumn(0);
+        if(empty($hash)){
+            throw new UserNotFoundException();
+        }
+        return $hash;
     }
 
     public function createUser(User $user = null){

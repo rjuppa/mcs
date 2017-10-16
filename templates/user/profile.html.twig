@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="card mx-auto col-md-8 pr-0 pl-0 mt-4">
+        <div class="card-header text-white bg-success mb-3">
+            Můj Profil
+        </div>
+        <div class="card-body">
+
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label class="col-form-label">Jméno</label>
+                    <input type="text" class="form-control" value="{{ user.getFirstName }}" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                    <label class="col-form-label">Příjmení</label>
+                    <input type="text" class="form-control" value="{{ user.getLastName }}" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label class="col-form-label">Email</label>
+                    <input type="text" class="form-control" value="{{ user.getEmail }}" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                    <label class="col-form-label">Role</label>
+                    <input type="text" class="form-control" value="{{ user.getTypeText }}" readonly>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label class="col-form-label">Vytvořeno</label>
+                    <input type="text" class="form-control" value="{{ user.getCreated }}" readonly>
+                </div>
+                <div class="form-group col-md-6">
+                    <label class="col-form-label">Aktivní</label>
+                    <input type="text" class="form-control" value="{{ user.getIsActiveText }}" readonly>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}

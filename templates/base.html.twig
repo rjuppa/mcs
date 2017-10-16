@@ -3,23 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}KIV-WEB - Conference{% endblock %}</title>
+    <link rel="stylesheet" href="{{ baseUrl }}/assets/css/bootstrap.css">
+<style>
+    html, body {
+        height:100%;
+    }
+</style>
 </head>
+
 <body>
-<p>KIV-WEB - Conference</p>
-<hr/>
-<div id="sidebar">
-    {% block sidebar %}
-        <ul>
-            <li><a href="/mcs/web/front.php/home">Home</a></li>
-            <li><a href="/mcs/web/front.php/users/list">Users</a></li>
-            <li><a href="/mcs/web/front.php/users/login">Login</a></li>
-            <li><a href="/mcs/web/front.php/about">About</a></li>
-        </ul>
-    {% endblock %}
+<div class="container" style="height:99%;">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light" style="border-bottom: solid #aaccaa 1px">
+        <a class="navbar-brand" href="{{ frontUrl }}/home">KIV-WEB - Conference</a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+
+        </div>
+
+        <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent2">
+            <ul class="navbar-nav justify-content-end">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ frontUrl }}/about">About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ frontUrl }}/posts/list">Příspěvky</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ frontUrl }}/users/list">Users</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ frontUrl }}/users/me">Profil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ frontUrl }}/login">Login</a>
+                </li>
+
+            </ul>
+        </div>
+    </nav>
+
+        <div id="content" class="p-2" style="height:80%;">
+        {% block body %}{% endblock %}
+    </div>
+
+    <hr/>
+    <footer>
+        <small>&copy; 2017, Autor: RADEK JUPPA</small>
+    </footer>
+
 </div>
 
-<div id="content">
-    {% block body %}{% endblock %}
-</div>
+<script src="{{ baseUrl }}/assets/js/jquery3.0.js"></script>
+<script src="{{ baseUrl }}/assets/js/popper.js"></script>
+<script src="{{ baseUrl }}/assets/js/bootstrap.js"></script>
+
 </body>
 </html>

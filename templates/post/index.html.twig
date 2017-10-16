@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <p>Články a příspěvky</p>
+    <p>{{ name }}</p>
+
+    <ul id="navigation">
+        {% for user in users %}
+            <li><a href="{{ user.getViewUrl }}">{{ user.getEmail }}</a></li>
+        {% endfor %}
+    </ul>
+
+{% endblock %}

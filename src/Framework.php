@@ -53,10 +53,15 @@ class Framework
             return call_user_func_array($controller, $arguments);
 
         } catch (ResourceNotFoundException $e) {
-            return new Response('Not Found', 404);
-
+            $context = array('message' => 'Stránka nebyla nalezena.');
+            $controllerObj = new SimplePageController($request);
+            $controllerObj->setTwig($twig);
+            return $controllerObj->render('404.html.twig', $context);
         } catch (\Exception $e) {
-            return new Response('An error occurred:'.$e->getMessage(), 500);
+            $context = array('message' => $e->getMessage());
+            $controllerObj = new SimplePageController($request);
+            $controllerObj->setTwig($twig);
+            return $controllerObj->render('404.html.twig', $context);
         }
     }
 }

@@ -77,6 +77,15 @@ class User
         throw new \Exception('User Type is not valid. (Supported: ADMIN, AUTHOR, REVIEWER)');
     }
 
+    public function getIsActiveText(){
+        if ($this->isActive) {
+            return 'ANO';
+        }
+        else{
+            return 'NE';
+        }
+    }
+
     private function validateEmail($email){
         if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return true;

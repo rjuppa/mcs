@@ -26,6 +26,78 @@ class UserController extends Controller
         return new UserService($this->db, $this->user, $this->pass);
     }
 
+    public function loginAction(Request $request)
+    {
+        $this->request = $request;
+        $service = $this->getService();
+
+        if( $_SERVER['REQUEST_METHOD'] == 'GET'){
+            $context = array();
+            return $this->render('login.html.twig', $context);
+        }
+
+        if( $_SERVER['REQUEST_METHOD'] == 'POST'){
+            $csrf = $_POST['csrftoken'];
+            $email = $_POST['email'];
+            $password = $_POST['password'];
+            if( !empty($csrf) && !empty($email) && !empty($password) ){
+                try{
+                    $user = $service->getUserByEmail($email);
+                }
+                catch(UserNotFoundException $e){
+                    $message = 'Naplatný email';
+                }
+                catch(PDOException $e)
+                {
+                    $message = sprintf('DB error: %s', $e->getMessage());
+                }
+                finally{
+                    $service->close();
+                }
+
+                // authenticate
+                if( $user && $user->getEmail() == $email){
+                    $authenticatedUser = $service->authenticate($email, $password);
+                    if( $authenticatedUser && $authenticatedUser->getEmail() == $email){
+                        session_start();
+                        $_SESSION['user'] = $authenticatedUser;
+                        $context = array('message' => $message);
+                        return $this->render('user/profile.html.twig', $context);
+                    }
+                }
+            }
+            else{
+                $message = 'Přihlášení se nepodařilo.';
+            }
+
+            $context = array('message' => $message);
+            return $this->render('login.html.twig', $context);
+        }
+
+
+
+        $users = $service->getUsersAll();
+        try{
+            //$users = $service->getUsersAll();
+            //foreach($users as $user){
+            //    $users[$user->getEmail()] = $user->getEmail();
+            //}
+
+        }
+        catch(PDOException $e)
+        {
+            return new Response($e->getMessage());
+        }
+        finally{
+            $service->close();
+        }
+
+        $context = array(
+            'users' => $users);
+        return $this->render('user/index.html.twig', $context);
+
+    }
+
     public function indexAction(Request $request)
     {
         $this->request = $request;
@@ -51,6 +123,55 @@ class UserController extends Controller
         return $this->render('user/index.html.twig', $context);
 
     }
+
+    public function viewAction(Request $request, $id)
+    {
+        $this->request = $request;
+        $service = $this->getService();
+        try{
+            $user = $service->getUserById($id);
+        }
+        catch(UserNotFoundException $e){
+            return new Response('User not found.');
+        }
+        catch(PDOException $e)
+        {
+            return new Response($e->getMessage());
+        }
+        finally{
+            $service->close();
+        }
+
+        $context = array(
+            'user' => $user);
+        return $this->render('user/view.html.twig', $context);
+    }
+
+    public function profileAction(Request $request)
+    {
+
+        $service = $this->getService();
+        try{
+            $user = $service->getUserById(3);
+        }
+        catch(UserNotFoundException $e){
+            return new Response('User not found.');
+        }
+        catch(PDOException $e)
+        {
+            return new Response($e->getMessage());
+        }
+        finally{
+            $service->close();
+        }
+
+        $context = array(
+            'user' => $user);
+        return $this->render('user/profile.html.twig', $context);
+    }
+
+
+
 
 
     public function createAction(Request $request)
@@ -98,28 +219,7 @@ class UserController extends Controller
         return new Response('New User was created. email='.$user->getEmail());
     }
 
-    public function viewAction(Request $request, $id)
-    {
 
-        $service = $this->getService();
-        try{
-            $user = $service->getUserById($id);
-        }
-        catch(UserNotFoundException $e){
-            return new Response('User not found.');
-        }
-        catch(PDOException $e)
-        {
-            return new Response($e->getMessage());
-        }
-        finally{
-            $service->close();
-        }
-
-        $context = array(
-            'user' => $user);
-        return $this->render('user/view.html.twig', $context);
-    }
 
     public function deleteAction(Request $request, $id)
     {

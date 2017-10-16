@@ -32,6 +32,8 @@ class Controller
     public function render($template, $context=array())
     {
         //echo $this->twig->render($template, $context);
+        $context['baseUrl'] = '/mcs/web';
+        $context['frontUrl'] = '/mcs/web/front.php';
 
         return new Response(
             $this->twig->render($template, $context)
