@@ -31,17 +31,24 @@
                     <a class="nav-link" href="{{ frontUrl }}/about">About</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ frontUrl }}/posts/list">Příspěvky</a>
+                    <a class="nav-link" href="{{ frontUrl }}/posts/list">Články</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ frontUrl }}/users/list">Users</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ frontUrl }}/users/me">Profil</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ frontUrl }}/login">Login</a>
-                </li>
+                {% if isUserAuthenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ frontUrl }}/users/list">Uživatelé</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ frontUrl }}/users/me">{{ authenticatedUser.getEmail }}</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ frontUrl }}/logout">Odhlásit</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ frontUrl }}/login">Přihlásit</a>
+                    </li>
+                {% endif %}
+
 
             </ul>
         </div>

@@ -2,13 +2,37 @@
 
 {% block body %}
 
-    <p>name</p>
-    <p>{{ name }}</p>
+    <div class="card mx-auto col-md-12 pr-0 pl-0 mt-4">
+        <div class="card-header text-white bg-success mb-3">
+            Uživatelé
+            <a href="{{ frontUrl }}/users/create" class="btn btn-sm btn-outline-warning float-right">Nový uživatel</a>
+        </div>
+        <div class="card-body">
 
-    <ul id="navigation">
-        {% for user in users %}
-            <li><a href="{{ user.getViewUrl }}">{{ user.getEmail }}</a></li>
-        {% endfor %}
-    </ul>
+            <table class="table table-sm table-responsive">
+                <tr>
+                    <th>Jméno</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Aktivní</th>
+                    <th></th>
+                </tr>
+
+                {% for user in users %}
+                <tr>
+                    <td><a href="{{ user.getEditUrl }}">{{ user.getLastName }} {{ user.getFirstName }}</a></td>
+                    <td>{{ user.getEmail }}</td>
+                    <td>{{ user.getTypeText }}</td>
+                    <td>{{ user.getIsActiveText }}</td>
+                    <td>
+                        <a href="{{ user.getDeleteUrl }}" class="btn btn-danger btn-sm">Smazat</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+
+        </div>
+    </div>
+
 
 {% endblock %}

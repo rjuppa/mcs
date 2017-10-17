@@ -29,15 +29,43 @@ class Controller
         $this->twig = $twig;
     }
 
+    public function generateCSRFToken(){
+        return md5(uniqid(rand(), TRUE));
+    }
+
     public function render($template, $context=array())
     {
-        //echo $this->twig->render($template, $context);
-        $context['baseUrl'] = '/mcs/web';
-        $context['frontUrl'] = '/mcs/web/front.php';
+        $context['baseUrl'] = BASE_URL;
+        $context['frontUrl'] = FRONT_URL;
+        if( empty($_SESSION['csrftoken'])){
+            $_SESSION['csrftoken'] = $this->generateCSRFToken();
+        }
+        $context['csrftoken'] = $_SESSION['csrftoken'];
+        if( !empty($_SESSION['isUserAuthenticated'])
+            && !empty($_SESSION['authenticatedUser']) && $_SESSION['authenticatedUser']->getId() > 0) {
+            $context['isUserAuthenticated'] = true;
+            $context['authenticatedUser'] = $_SESSION['authenticatedUser'];
+        }
+        else {
+            $context['isUserAuthenticated'] = false;
+            $context['authenticatedUser'] = null;
+        }
 
         return new Response(
             $this->twig->render($template, $context)
         );
+    }
+
+    public function redirect($url){
+        $url = strtolower($url);
+        $start = substr( $url, 0, 5 );
+        $base = substr( FRONT_URL, 0, 5 );
+        if( $start != $base ){
+            // fix url - add base
+            $url = sprintf('%s%s', FRONT_URL, $url);
+        }
+        $headers = array('Location' => $url);
+        return new Response('', 302, $headers);
     }
 
 }

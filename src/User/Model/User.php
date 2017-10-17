@@ -24,19 +24,50 @@ class User
 
     public $types = array('ADMIN', 'AUTHOR', 'REVIEWER');
 
-    public function __construct($firstName, $lastName, $email, $typeStr)
-    {
-        // validation
-        $this->validateEmail($email);
-        $this->validateLastName($lastName);
 
-        $this->firstName = $firstName;
-        $this->lastName = $lastName;
-        $this->email = $email;
-        $this->type = $this->setTypeText(strtoupper($typeStr));
-        $this->isActive = false;
+//    public function __construct($firstName, $lastName, $email, $typeStr)
+//    {
+//        // validation
+//        $this->validateEmail($email);
+//        $this->validateLastName($lastName);
+//
+//        $this->firstName = $firstName;
+//        $this->lastName = $lastName;
+//        $this->email = $email;
+//        $this->type = $this->setTypeText(strtoupper($typeStr));
+//        $this->isActive = true;
+//        $this->created = new DateTime();
+//    }
+
+    public function __construct(){
+        $this->type = 1;    //AUTHOR
+        $this->isActive = true;
         $this->created = new DateTime();
     }
+
+    public static function withValidation( $firstName, $lastName, $email, $typeStr ) {
+        $instance = new self();
+        // validation
+        $instance->validateEmail($email);
+        $instance->validateLastName($lastName);
+
+        $instance->firstName = $firstName;
+        $instance->lastName = $lastName;
+        $instance->email = $email;
+        $instance->type = $instance->setTypeText(strtoupper($typeStr));
+        $instance->isActive = true;
+        $instance->created = new DateTime();
+        return $instance;
+    }
+
+    public static function getTypeOpts(){
+        return array('1' => 'AUTOR', '2' => 'REVIEWER', '4' => 'ADMIN');
+    }
+
+    public static function getIsActiveOpts(){
+        return array('1' => 'ANO', '0' => 'NE');
+    }
+
 
     public function getId(){ return $this->id; }
     public function getFirstName(){ return $this->firstName; }
@@ -46,13 +77,14 @@ class User
     public function getIsActive(){ return $this->isActive; }
     public function getCreated(){ return $this->created; }
 
-    public function getViewUrl(){ return sprintf('/mcs/web/front.php/users/%s', $this->id); }
-    public function getEditUrl(){ return sprintf('/mcs/web/front.php/users/%s/edit', $this->id); }
+    public function getViewUrl(){ return sprintf('%s/users/%s', FRONT_URL, $this->id); }
+    public function getEditUrl(){ return sprintf('%s/users/%s/edit', FRONT_URL, $this->id); }
+    public function getDeleteUrl(){ return sprintf('%s/users/%s/delete', FRONT_URL, $this->id); }
 
     public function setId($id){ return $this->id = $id; }
     public function setType($typeInt){ return $this->type = $typeInt; }
-    public function setFirstName($firstName){ return $this->id = $firstName; }
-    public function setLastName($lastName){ $this->validateLastName($lastName); return $this->id = $lastName; }
+    public function setFirstName($firstName){ return $this->firstName = $firstName; }
+    public function setLastName($lastName){ $this->validateLastName($lastName); return $this->lastName = $lastName; }
     public function setEmail($email){ $this->validateEmail($email); return $this->email = $email; }
     public function setIsActive($isActive){ return $this->isActive = $isActive; }
     public function setCreated($created){ return $this->created = $created; }
@@ -84,6 +116,12 @@ class User
         else{
             return 'NE';
         }
+    }
+
+    public function validate(){
+        // validation
+        $this->validateEmail($this->email);
+        $this->validateLastName($this->lastName);
     }
 
     private function validateEmail($email){

@@ -15,6 +15,12 @@ use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 
 
+define('BASE_URL',     '/mcs/web');
+define('FRONT_URL',    '/mcs/web/front.php');
+
+
+session_start();
+
 $request = Request::createFromGlobals();
 $routes = include __DIR__.'/../src/router.php';
 $loader = new Twig_Loader_Filesystem(__DIR__.'/../templates');

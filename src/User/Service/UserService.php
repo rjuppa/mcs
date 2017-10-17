@@ -18,8 +18,12 @@ class UserDuplicateEmailException extends Exception{ }
 class UserService extends BaseService
 {
 
+    /*
+     * map DB row into User
+     * returns a user
+     */
     private function mapUser($row){
-        $user = new User($row->first_name, $row->last_name, $row->email, 'AUTHOR');
+        $user = User::withValidation($row->first_name, $row->last_name, $row->email, 'AUTHOR');
         $user->setId($row->id);
         $user->setType($row->type);
         $user->setIsActive($row->is_active);
@@ -28,8 +32,11 @@ class UserService extends BaseService
         return $user;
     }
 
-    public function authenticate($email, $pass)
-    {
+    /*
+     * authenticate user when login
+     * returns an authenticated user
+     */
+    public function authenticate($email, $pass){
         $hash = null;
         $user = $this->getUserByEmail($email);
         if( $user ){
@@ -39,7 +46,7 @@ class UserService extends BaseService
             throw new UserNotFoundException();
         }
 
-        if( md5($pass) == $hash ){
+        if( $pass == $hash ){  //md5($pass) == $hash
             // success
             return $user;
         }
@@ -48,11 +55,12 @@ class UserService extends BaseService
         return null;
     }
 
-
+    /*
+     * returns all users
+     */
     public function getUsersAll(){
         $users = array();
         $sql = "SELECT * FROM users WHERE deleted=0";
-
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute();
         $result = $stmt->fetchAll(PDO::FETCH_CLASS);
@@ -63,6 +71,9 @@ class UserService extends BaseService
         return $users;
     }
 
+    /*
+     * returns a user by ID
+     */
     public function getUserById($id = null){
         $sql = "SELECT * FROM users WHERE deleted=0 AND id=:id";
         $stmt = $this->pdo->prepare($sql);
@@ -76,6 +87,9 @@ class UserService extends BaseService
         return $this->mapUser($row);
     }
 
+    /*
+     * returns a user by email
+     */
     public function getUserByEmail($email = null){
         $sql = "SELECT * FROM users WHERE deleted=0 AND email=:email";
         $stmt = $this->pdo->prepare($sql);
@@ -89,11 +103,14 @@ class UserService extends BaseService
         return $this->mapUser($row);
     }
 
-    public function getHashByEmail($email = null){
+    /*
+     * returns a user hash by email
+     */
+    public function getHashByEmail($email){
+        $email = strtolower($email);
         $sql = "SELECT password_hash FROM users WHERE deleted=0 AND is_active=1 AND email=:email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
-        $email = strtolower($email);
         $stmt->execute();
         $hash = $stmt->fetchColumn(0);
         if(empty($hash)){
@@ -102,25 +119,55 @@ class UserService extends BaseService
         return $hash;
     }
 
-    public function createUser(User $user = null){
-        $sql = "INSERT INTO users (first_name, last_name, email) VALUES (:first_name, :last_name, :email)";
+    /*
+     * creates a new user
+     * returns ID
+     */
+    public function createUser(User $user=null){
+        $sql = "INSERT INTO users (first_name, last_name, email, type, is_active) VALUES (:first_name, :last_name, :email, :type, :is_active)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':first_name', $firstName, PDO::PARAM_STR);
         $stmt->bindParam(':last_name', $lastName, PDO::PARAM_STR);
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->bindParam(':type', $type, PDO::PARAM_INT);
+        $stmt->bindParam(':is_active', $is_active, PDO::PARAM_INT);
         $firstName = $user->getFirstName();
         $lastName = $user->getLastName();
         $email = $user->getEmail();
+        $type = $user->getType();
+        $is_active = $user->getIsActive();
         $stmt->execute();
         $last_id = $this->pdo->lastInsertId();
         return $last_id;
     }
 
-    public function updateUser($user = null){
-
+    public function editUser($user = null){
+        $sql = "UPDATE users SET first_name=:first_name, last_name=:last_name, email=:email, type=:type, is_active=:is_active WHERE id=:id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':first_name', $firstName, PDO::PARAM_STR);
+        $stmt->bindParam(':last_name', $lastName, PDO::PARAM_STR);
+        $stmt->bindParam(':email', $email, PDO::PARAM_STR);
+        $stmt->bindParam(':type', $type, PDO::PARAM_INT);
+        $stmt->bindParam(':is_active', $is_active, PDO::PARAM_INT);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $firstName = $user->getFirstName();
+        $lastName = $user->getLastName();
+        $email = $user->getEmail();
+        $type = $user->getType();
+        $is_active = $user->getIsActive();
+        $id = $user->getId();
+        $stmt->execute();
+        return $this->getUserById($user->getId());
     }
 
+    /*
+     * delete an existing user
+     */
     public function deleteUser($user = null){
-
+        $sql = "DELETE FROM users WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $id = $user->getId();
+        $stmt->execute();
     }
 }
