@@ -1,0 +1,200 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <h4>{{ post.getTitle }}</h4>
+            <h6 class="card-subtitle mb-4 text-muted">
+                {{ post.getAuthorName }}
+                <small class="float-right">Publikováno:
+                    {% if post.getPublished %}
+                        {{ post.getPublished }}
+                    {% else %}
+                        <b>NE</b>
+                    {% endif %}
+                </small>
+            </h6>
+
+            <div class="clearfix"></div>
+            <p>{{ post.getAbstract }}</p>
+            <div class="clearfix"></div>
+            <h3>
+                {% if post.getFileName %}
+                <small>Stáhnout dokument:</small>
+                <a href="{{ post.getDownloadUrl }}" target="_blank"><span class="badge badge-success badge-pill">{{ post.getFileName }}</span></a>
+                {% endif %}
+            </h3>
+
+            {% if not isUserAuthenticated %}
+                <div class="col-12 text-right">
+                    <div class="star-rating" style="margin-right: 150px">
+                        <h6 class="card-subtitle mt-4 text-muted text-right">Rating</h6>
+                    </div>
+                </div>
+                <div class="col-12 text-right">
+                    <div class="star-rating"><span>Originalita</span>
+                        {{ post.renderOriginality|raw }}
+                    </div>
+                </div>
+                <div class="col-12 text-right">
+                    <div class="star-rating"><span>Jazyk</span>
+                        {{ post.renderLanguage|raw }}
+                    </div>
+                </div>
+                <div class="col-12 text-right">
+                    <div class="star-rating"><span>Kvalita</span>
+                        {{ post.renderQuality|raw }}
+                    </div>
+                </div>
+
+            {% else %}
+
+                {% if authenticatedUser.isReviewer %}
+
+                    {% if post.published is empty %}
+
+                        <div>
+                            <form action="" method="post">
+                                <input type="hidden" name="csrftoken" value="{{ csrftoken }}" >
+                                <div class="col-12 text-right">
+                                    <div class="star-rating" >
+                                        <h6 class="card-subtitle mt-4 text-muted text-right m-1">Hodnocení</h6>
+                                    </div>
+                                </div>
+                                <div class="col-12 text-right">
+                                    <div class="star-rating"><span>Originalita</span>
+                                        <select name="originality" id="id_originality" onchange="ratingOnChanged()">
+                                            {{ post.renderOriginalityOptions | raw }}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-12 text-right">
+                                    <div class="star-rating"><span>Jazyk</span>
+                                        <select name="language" id="id_language" onchange="ratingOnChanged()">
+                                            {{ post.renderLanguageOptions | raw }}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-12 text-right">
+                                    <div class="star-rating"><span>Kvalita</span>
+                                        <select name="quality" id="id_quality" onchange="ratingOnChanged()">
+                                            {{ post.renderQualityOptions | raw }}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-12 text-right">
+                                    <div class="star-rating">
+                                        <input type="submit"
+                                               name="submit"
+                                               id="id_rating"
+                                               value="Ohodnotit"
+                                               disabled
+                                               class="btn btn-sm btn-gray m-1">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                    {% else %}
+                        <div class="col-12 text-right">
+                            <div class="star-rating" style="margin-right: 150px">
+                                <h6 class="card-subtitle mt-4 text-muted text-right">Rating</h6>
+                            </div>
+                        </div>
+                        <div class="col-12 text-right">
+                            <div class="star-rating"><span>Originalita</span>
+                                {{ post.renderOriginality|raw }}
+                            </div>
+                        </div>
+                        <div class="col-12 text-right">
+                            <div class="star-rating"><span>Jazyk</span>
+                                {{ post.renderLanguage|raw }}
+                            </div>
+                        </div>
+                        <div class="col-12 text-right">
+                            <div class="star-rating"><span>Kvalita</span>
+                                {{ post.renderQuality|raw }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                {% endif %}
+
+                {% if authenticatedUser.isAuthor or authenticatedUser.isAdmin %}
+                        <div class="col-12 text-right">
+                            <div class="star-rating" style="margin-right: 150px">
+                                <h6 class="card-subtitle mt-4 text-muted text-right">Rating</h6>
+                            </div>
+                        </div>
+                        <div class="col-12 text-right">
+                            <div class="star-rating"><span>Originalita</span>
+                                {{ post.renderOriginality|raw }}
+                            </div>
+                        </div>
+                        <div class="col-12 text-right">
+                            <div class="star-rating"><span>Jazyk</span>
+                                {{ post.renderLanguage|raw }}
+                            </div>
+                        </div>
+                        <div class="col-12 text-right">
+                            <div class="star-rating"><span>Kvalita</span>
+                                {{ post.renderQuality|raw }}
+                            </div>
+                        </div>
+                {% endif %}
+
+
+            {% endif %}
+
+
+            <div class="clearfix mt-4"></div>
+        </div>
+    </div>
+
+
+
+    <div class="row mx-auto text-center col-12 mt-2 bg-light p-2">
+        <div class="col-4 text-left">
+            {% if isUserAuthenticated %}
+                <a href="{{ frontUrl }}/posts/mylist" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
+            {% else %}
+                <a href="{{ frontUrl }}/posts/list" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
+            {% endif %}
+        </div>
+        <div class="col-6">
+            {% if authenticatedUser.isAuthor %}
+                <a href="{{ post.getEditUrl }}" class="btn btn-sm btn-warning">Editovat</a>
+            {% endif %}
+            {% if authenticatedUser.isAdmin %}
+                <a href="{{ post.getPublishUrl }}" class="btn btn-sm btn-warning">Publikovat</a>
+            {% endif %}
+
+        </div>
+    </div>
+
+<script language="JavaScript">
+    function ratingOnChanged() {
+        var a1 = $("#id_originality").val();
+        var a2 = $("#id_language").val();
+        var a3 = $("#id_quality").val();
+        if( a1>0 && a2>0 && a3>0){
+            $("#id_rating").prop("disabled", false);
+            $("#id_rating").removeClass('btn-gray');
+            $("#id_rating").addClass('btn-warning');
+        }
+        else{
+            $("#id_rating").prop("disabled", true);
+            $("#id_rating").addClass('btn-gray');
+            $("#id_rating").removeClass('btn-warning');
+        }
+    }
+
+    function ready() {
+        ratingOnChanged();
+    }
+    document.addEventListener("DOMContentLoaded", ready);
+
+</script>
+
+{% endblock %}

@@ -19,6 +19,11 @@ class Controller
     protected $request = null;
     protected $routes = null;
 
+    /** @var User $authUser  */
+    protected $authUser = null;
+    protected $isUserAuthenticated = false;
+
+
     public function setConnection($db, $user, $pass){
         $this->db = $db;
         $this->user = $user;
@@ -27,6 +32,18 @@ class Controller
 
     public function setTwig($twig){
         $this->twig = $twig;
+    }
+
+    public function setRequest($request){
+        $this->request = $request;
+        if( !empty($_SESSION['authenticatedUser'])){
+            /** @var User $user */
+            $user = $_SESSION['authenticatedUser'];
+            if( $user->getId() > 0){
+                $this->authUser = $user;
+                $this->isUserAuthenticated = true;
+            }
+        }
     }
 
     public function generateCSRFToken(){
@@ -66,6 +83,12 @@ class Controller
         }
         $headers = array('Location' => $url);
         return new Response('', 302, $headers);
+    }
+
+    public function loginRequired(){
+        if (!$this->isUserAuthenticated) {
+            $this->redirect(sprintf('%s/login'));
+        }
     }
 
 }

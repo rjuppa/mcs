@@ -17,6 +17,7 @@ use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 
 define('BASE_URL',     '/mcs/web');
 define('FRONT_URL',    '/mcs/web/front.php');
+define('PROJ_PATH',    '/opt/lampp/htdocs/mcs');
 
 
 session_start();
@@ -24,7 +25,8 @@ session_start();
 $request = Request::createFromGlobals();
 $routes = include __DIR__.'/../src/router.php';
 $loader = new Twig_Loader_Filesystem(__DIR__.'/../templates');
-$twig = new Twig_Environment($loader);
+$twig = new Twig_Environment($loader, array('debug' => true));
+$twig->addExtension(new Twig_Extension_Debug());
 
 $context = new Routing\RequestContext();
 $matcher = new Routing\Matcher\UrlMatcher($routes, $context);

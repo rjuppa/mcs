@@ -46,22 +46,31 @@ class Framework
             $route = $this->matcher->match($request->getPathInfo());
             $request->attributes->add($route);
             $controller = $this->controllerResolver->getController($request);
+
+            /** @var Controller $controllerObj */
             $controllerObj = $controller[0];
             $controllerObj->setConnection($this->getDBString(), $this->getDBUser(), $this->getDBPass());
             $controllerObj->setTwig($twig);
+            $controllerObj->setRequest($request);
             $arguments = $this->argumentResolver->getArguments($request, $controller);
             return call_user_func_array($controller, $arguments);
 
         } catch (ResourceNotFoundException $e) {
             $context = array('message' => 'Stránka nebyla nalezena.');
-            $controllerObj = new SimplePageController($request);
+
+            /** @var SimplePageController $controllerObj */
+            $controllerObj = new SimplePageController();
             $controllerObj->setTwig($twig);
+            $controllerObj->setRequest($request);
             return $controllerObj->render('404.html.twig', $context);
         } catch (\Exception $e) {
             $context = array('message' => $e->getMessage());
-            $controllerObj = new SimplePageController($request);
+
+            /** @var SimplePageController $controllerObj */
+            $controllerObj = new SimplePageController();
             $controllerObj->setTwig($twig);
-            return $controllerObj->render('404.html.twig', $context);
+            $controllerObj->setRequest($request);
+            return $controllerObj->render('500.html.twig', $context);
         }
     }
 }

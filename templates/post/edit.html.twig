@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="card mx-auto col-md-12 pr-0 pl-0 mt-4">
+        <div class="card-header text-white bg-warning">
+            {{ title }}
+        </div>
+        <div class="card-body">
+
+            <form action="" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="csrftoken" value="{{ csrftoken }}">
+                <div class="form-row">
+                    <label for="id_title">Nadpis</label>
+                    <input type="text"
+                           name="title"
+                           id="id_title"
+                           class="form-control"
+                           value="{{ post.getTitle }}">
+
+                    <label for="id_abstract" class="mt-2">Abstract</label>
+                    <textarea name="abstract"
+                              id="id_abstract"
+                              class="form-control"
+                              rows="8" required>{{ post.getAbstract }}</textarea>
+                </div>
+                <div class="form-row p-1 mt-2">
+                    <div class="form-inline">
+                        <label for="id_abstract" class="mt-2">Nahrát soubor</label>&nbsp;
+                        <input type="file" name="file" accept="application/pdf" class="ml-3">
+                    </div>
+
+                </div>
+
+
+                <div class="text-danger p-2 text-center">{{ message }}</div>
+
+                <div class="row mx-auto text-center col-12 mt-2 bg-light p-2">
+                    <div class="col-4 text-left">
+                        {% if isUserAuthenticated %}
+                            <a href="{{ frontUrl }}/posts/mylist" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
+                        {% else %}
+                            <a href="{{ frontUrl }}/posts/list" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
+                        {% endif %}
+                    </div>
+                    <div class="col-6">
+                        <form action="" method="post">
+                            <input type="hidden" name="csrftoken" value="{{ csrftoken }}" />
+                            <input type="submit" name="submit" value="Uložit" class="btn btn-warning btn-sm" />
+                        </form>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+{% endblock %}

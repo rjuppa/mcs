@@ -3,7 +3,7 @@
 {% block body %}
 
     <div class="card mx-auto col-md-8 pr-0 pl-0 mt-4">
-        <div class="card-header text-white bg-success mb-3">
+        <div class="card-header text-white bg-warning mb-3">
             {{ title }}
         </div>
         <div class="card-body">
@@ -49,12 +49,12 @@
 
                 <div class="row mx-auto text-center col-8 mt-2">
                     <div class="col-4">
-                        <a href="{{ frontUrl }}/users/list" class="btn btn-outline-success btn-sm">Zpět</a>
+                        <a href="{{ frontUrl }}/users/list" class="btn btn-outline-warning btn-sm">Zpět</a>
                     </div>
                     <div class="col-6">
                         <form action="" method="post">
                             <input type="hidden" name="csrftoken" value="{{ csrftoken }}" />
-                            <input type="submit" name="submit" value="Uložit" class="btn btn-success btn-sm" />
+                            <input type="submit" name="submit" value="Uložit" class="btn btn-warning btn-sm" />
                         </form>
                     </div>
                 </div>

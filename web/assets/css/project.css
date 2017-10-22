@@ -1,0 +1,53 @@
+
+a {color: #c09853;}
+
+label{ font-weight: bold;}
+.label{ font-weight: bold;}
+
+.bs-callout {
+    margin: 20px 0;
+    padding: 5px;
+    border: 0;
+    border-left: 3px solid #eee;
+}
+
+.bg-warning {
+    background-color: #c09853 !important;
+}
+.bs-callout-warning {
+    background-color: #faf8f0;
+    border-color: #faebcc;
+
+}
+.bs-callout-warning h4 a{
+    color: #c09853;
+    font-size: 1.5rem;
+}
+.btn-outline-warning:hover {
+    color: #fff;
+    background-color: #c09853;
+    border-color: #c09853;
+}
+.star-rating {
+    line-height:32px;
+    font-size:1.25em;
+}
+
+.fa-star-empty:before {
+    content: "\f005";
+}
+
+.star-rating .fa-star{color: #c09853;}
+.star-rating .fa-star-empty{color: #e2dee2 !important;}
+
+.btn-warning {
+    color: #111;
+    background-color: #c09853;
+    border-color: #c09853;
+}
+.btn-outline-warning {
+    color: #c09853;
+    background-color: transparent;
+    background-image: none;
+    border-color: #c09853;
+}

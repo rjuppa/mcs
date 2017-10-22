@@ -6,31 +6,26 @@
  * Time: 23:46
  */
 
-use Symfony\Component\HttpFoundation\Request;
-
 
 class SimplePageController extends Controller
 {
 
-    public function indexAction(Request $request)
+    public function indexAction()
     {
-        $this->request = $request;
         $context = array('name' => 'Home');
         return $this->render('home.html.twig', $context);
 
     }
 
-    public function aboutAction(Request $request)
+    public function aboutAction()
     {
-        $this->request = $request;
         $context = array('name' => 'About');
         return $this->render('about.html.twig', $context);
 
     }
 
-    public function loginAction(Request $request)
+    public function loginAction()
     {
-        $this->request = $request;
         $context = array('name' => 'Login');
         return $this->render('login.html.twig', $context);
 

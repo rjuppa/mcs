@@ -9,6 +9,8 @@
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
+
+
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -39,6 +41,77 @@ CREATE TABLE `users` (
   `deleted` bit(1) NOT NULL DEFAULT b'0',
   `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+
+CREATE TABLE `posts` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `title` varchar(100) COLLATE utf8_czech_ci NOT NULL,
+  `slug` varchar(100) COLLATE utf8_czech_ci NOT NULL,
+  `author_id` int(10) UNSIGNED NOT NULL,
+  `abstract` text COLLATE utf8_czech_ci NOT NULL,
+  `file` mediumblob,
+  `file_name` varchar(100) COLLATE utf8_czech_ci DEFAULT NULL,
+  `published` timestamp NULL DEFAULT NULL,
+  `published_by_id` int(10) UNSIGNED DEFAULT NULL,
+  `deleted` tinyint(4) DEFAULT '0',
+  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+
+--
+-- Klíče pro tabulku `posts`
+--
+ALTER TABLE `posts`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `UNIQ_SLUG` (`slug`),
+  ADD KEY `FK_POST_AUTHOR` (`author_id`),
+  ADD KEY `FK_POST_PUBLISHER` (`published_by_id`);
+
+--
+-- AUTO_INCREMENT pro tabulku `posts`
+--
+ALTER TABLE `posts`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- Omezení pro tabulku `posts`
+--
+ALTER TABLE `posts`
+  ADD CONSTRAINT `FK_POST_AUTHOR` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`),
+  ADD CONSTRAINT `FK_POST_PUBLISHER` FOREIGN KEY (`published_by_id`) REFERENCES `users` (`id`);
+
+
+
+
+--
+-- Struktura tabulky `scores`
+--
+
+CREATE TABLE `scores` (
+  `post_id` int(10) UNSIGNED NOT NULL,
+  `reviewer_id` int(10) UNSIGNED NOT NULL,
+  `rating_originality` tinyint(4) NOT NULL DEFAULT '0',
+  `rating_language` tinyint(4) NOT NULL DEFAULT '0',
+  `rating_quality` tinyint(4) NOT NULL DEFAULT '0',
+  `score` decimal(10,0) NOT NULL DEFAULT '0',
+  `note` varchar(255) COLLATE utf8_czech_ci DEFAULT NULL,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+
+--
+-- Klíče pro tabulku `scores`
+--
+ALTER TABLE `scores`
+  ADD UNIQUE KEY `UK_RATING` (`post_id`,`reviewer_id`) USING BTREE,
+  ADD KEY `IX_SCORE_REVIEWER` (`reviewer_id`) USING BTREE;
+
+--
+-- Omezení pro tabulku `scores`
+--
+ALTER TABLE `scores`
+  ADD CONSTRAINT `FK_SCORE_POST` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`),
+  ADD CONSTRAINT `FK_SCORE_REVIEWER` FOREIGN KEY (`reviewer_id`) REFERENCES `users` (`id`);
+
+
+
 
 --
 -- Vypisuji data pro tabulku `users`
@@ -72,6 +145,9 @@ ALTER TABLE `users`
 --
 ALTER TABLE `users`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+
+
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

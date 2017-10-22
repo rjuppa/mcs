@@ -12,6 +12,10 @@ use DateTime;
 
 class User
 {
+    public static $AUTHOR = 1;
+    public static $REVIEWER = 2;
+    public static $ADMIN = 4;
+
     protected $id;
     protected $firstName;
     protected $lastName;
@@ -24,26 +28,12 @@ class User
 
     public $types = array('ADMIN', 'AUTHOR', 'REVIEWER');
 
-
-//    public function __construct($firstName, $lastName, $email, $typeStr)
-//    {
-//        // validation
-//        $this->validateEmail($email);
-//        $this->validateLastName($lastName);
-//
-//        $this->firstName = $firstName;
-//        $this->lastName = $lastName;
-//        $this->email = $email;
-//        $this->type = $this->setTypeText(strtoupper($typeStr));
-//        $this->isActive = true;
-//        $this->created = new DateTime();
-//    }
-
     public function __construct(){
         $this->type = 1;    //AUTHOR
         $this->isActive = true;
         $this->created = new DateTime();
     }
+
 
     public static function withValidation( $firstName, $lastName, $email, $typeStr ) {
         $instance = new self();
@@ -72,6 +62,7 @@ class User
     public function getId(){ return $this->id; }
     public function getFirstName(){ return $this->firstName; }
     public function getLastName(){ return $this->lastName; }
+    public function getDisplayName(){ return sprintf('%s %s', $this->firstName, $this->lastName); }
     public function getEmail(){ return $this->email; }
     public function getType(){ return $this->type; }
     public function getIsActive(){ return $this->isActive; }
@@ -81,14 +72,14 @@ class User
     public function getEditUrl(){ return sprintf('%s/users/%s/edit', FRONT_URL, $this->id); }
     public function getDeleteUrl(){ return sprintf('%s/users/%s/delete', FRONT_URL, $this->id); }
 
-    public function setId($id){ return $this->id = $id; }
-    public function setType($typeInt){ return $this->type = $typeInt; }
-    public function setFirstName($firstName){ return $this->firstName = $firstName; }
-    public function setLastName($lastName){ $this->validateLastName($lastName); return $this->lastName = $lastName; }
-    public function setEmail($email){ $this->validateEmail($email); return $this->email = $email; }
-    public function setIsActive($isActive){ return $this->isActive = $isActive; }
-    public function setCreated($created){ return $this->created = $created; }
-    public function setDeleted($deleted){ return $this->deleted = $deleted; }
+    public function setId($id){ $this->id = intval($id); }
+    public function setType($typeInt){$this->type = intval($typeInt);}
+    public function setFirstName($firstName){ $this->firstName = $firstName; }
+    public function setLastName($lastName){ $this->validateLastName($lastName); $this->lastName = $lastName; }
+    public function setEmail($email){ $this->validateEmail($email); $this->email = $email; }
+    public function setIsActive($isActive){ $this->isActive = $isActive; }
+    public function setCreated($created){ $this->created = $created; }
+    public function setDeleted($deleted){ $this->deleted = $deleted; }
 
 
     public function getTypeText(){
@@ -102,9 +93,9 @@ class User
 
     public function setTypeText($typeString){
         switch ($typeString){
-            case 'AUTHOR': return 1;
-            case 'REVIEWER': return 2;
-            case 'ADMIN': return 4;
+            case 'AUTHOR': return User::$AUTHOR;
+            case 'REVIEWER': return User::$REVIEWER;
+            case 'ADMIN': return User::$ADMIN;
         }
         throw new \Exception('User Type is not valid. (Supported: ADMIN, AUTHOR, REVIEWER)');
     }
@@ -138,25 +129,20 @@ class User
         throw new \Exception('LastName is required.');
     }
 
-    public function isLeapYear($year = null)
-    {
-        if (null === $year) {
-            $year = date('Y');
-        }
-
-        return 0 == $year % 400 || (0 == $year % 4 && 0 != $year % 100);
-    }
-
     public function isAdmin(){
-        return $this->type == 'ADMIN';
+        return intval($this->type) == User::$ADMIN;
     }
 
     public function isAuthor(){
-        return $this->type == 'AUTHOR';
+        return intval($this->type) == User::$AUTHOR;
     }
 
     public function isReviewer(){
-        return $this->type == 'REVIEWER';
+        return intval($this->type) == User::$REVIEWER;
+    }
+
+    public function isReviewerOrAdmin(){
+        return intval($this->type) == User::$REVIEWER || intval($this->type) == User::$ADMIN;
     }
 
 }

@@ -52,9 +52,38 @@ $routes->add('user-view', new Routing\Route('/users/{id}', array(
 )));
 
 
-
+// posts
 $routes->add('post-list', new Routing\Route('/posts/list', array(
     '_controller' => 'Post\Controller\PostController::indexAction',
 )));
+$routes->add('post-mylist', new Routing\Route('/posts/mylist', array(
+    '_controller' => 'Post\Controller\PostController::myIndexAction',
+)));
+$routes->add('post-create', new Routing\Route('/posts/create', array(
+    '_controller' => 'Post\Controller\PostController::createAction',
+)));
+$routes->add('post-edit', new Routing\Route('/posts/{id}/edit', array(
+    'id' => null,
+    '_controller' => 'Post\Controller\PostController::editAction',
+)));
+$routes->add('post-delete', new Routing\Route('/posts/{id}/delete', array(
+    'id' => null,
+    '_controller' => 'Post\Controller\PostController::deleteAction',
+)));
+$routes->add('post-download', new Routing\Route('/posts/{id}/download', array(
+    'id' => null,
+    '_controller' => 'Post\Controller\PostController::downloadAction',
+)));
+$routes->add('post-publish', new Routing\Route('/posts/{id}/publish', array(
+    'id' => null,
+    '_controller' => 'Post\Controller\PostController::publishAction',
+)));
+$routes->add('post-view', new Routing\Route('/posts/{id}', array(
+    'id' => null,
+    '_controller' => 'Post\Controller\PostController::viewAction',
+)));
+
+
+
 
 return $routes;

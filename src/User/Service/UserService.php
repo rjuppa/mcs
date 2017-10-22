@@ -141,7 +141,7 @@ class UserService extends BaseService
         return $last_id;
     }
 
-    public function editUser($user = null){
+    public function editUser(User $user = null){
         $sql = "UPDATE users SET first_name=:first_name, last_name=:last_name, email=:email, type=:type, is_active=:is_active WHERE id=:id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':first_name', $firstName, PDO::PARAM_STR);
@@ -163,7 +163,7 @@ class UserService extends BaseService
     /*
      * delete an existing user
      */
-    public function deleteUser($user = null){
+    public function deleteUser(User $user = null){
         $sql = "DELETE FROM users WHERE id = :id";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindParam(':id', $id, PDO::PARAM_INT);

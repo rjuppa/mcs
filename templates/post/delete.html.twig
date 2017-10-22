@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="card mx-auto col-md-8 pr-0 pl-0 mt-2">
+        <div class="card-header text-white bg-danger mb-3">
+            Opravdu chcete <strong>smazat</strong> příspěvek:
+        </div>
+        <div class="card-body">
+
+            <table class="table table-sm">
+                <tr>
+                    <th style="width: 20%;"><label class="label">Název</label></th>
+                    <td>{{ post.getTitle }}</td>
+                </tr>
+                <tr>
+                    <th><label class="label">Abstract</label></th>
+                    <td>{{ post.getAbstract }}</td>
+                </tr>
+                <tr>
+                    <th><label class="label">Vytvořeno</label></th>
+                    <td>{{ post.getCreated }}</td>
+                </tr>
+            </table>
+
+            <div class="row mx-auto text-center col-8">
+                <div class="col-4">
+                    <a href="{{ frontUrl }}/posts/list">Zpět</a>
+                </div>
+                <div class="col-6">
+                    <form action="" method="post">
+                        <input type="hidden" name="csrftoken" value="{{ csrftoken }}" />
+                        <input type="submit" name="submit" value="Smazat" class="btn btn-danger btn-sm" />
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+{% endblock %}

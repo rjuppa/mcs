@@ -2,13 +2,55 @@
 
 {% block body %}
 
-    <p>Články a příspěvky</p>
-    <p>{{ name }}</p>
+    <div class="row">
+        <div class="col-sm-12 mt-3">
+            <h5>Články a Příspěvky
+            {% if authenticatedUser.isAuthor or authenticatedUser.isAdmin %}
+                <a href="{{ frontUrl }}/posts/create" class="btn btn-sm btn-outline-warning float-right">Nový příspěvek</a>
+            {% endif %}
+            </h5>
+        </div>
+        <div class="clearfix"></div>
 
-    <ul id="navigation">
-        {% for user in users %}
-            <li><a href="{{ user.getViewUrl }}">{{ user.getEmail }}</a></li>
+        {% for post in posts %}
+            <div class="col-sm-12">
+                <div class="card mt-1 bs-callout bs-callout-warning">
+                    <div class="card-body">
+                        <h4 class="card-title"><a href="{{ post.getViewUrl }}">{{ post.getTitle }}</a></h4>
+                        <h6 class="card-subtitle mb-2 text-muted">
+                            {{ post.getAuthorName }}
+                            <small class="float-right">Publikováno:
+                                {% if post.getPublished %}
+                                    {{ post.getPublished }}
+                                {% else %}
+                                    <b>NE</b>
+                                {% endif %}
+                            </small>
+                        </h6>
+                        <p class="card-text">{{ post.getAbstract }}</p>
+                        <div class="clearfix"></div>
+
+                        <div class="row">
+                            <div class="col-7">
+                                <small class="card-subtitle mt-4 text-muted">{{ post.getCreated }}</small>&nbsp;&nbsp;&nbsp;&nbsp;
+                                {% if authenticatedUser.isAuthor and post.isMyPost %}
+                                    <a href="{{ post.getEditUrl }}" class="card-link">Editovat</a>
+                                    <a href="{{ post.getDeleteUrl }}" class="card-link">Smazat</a>
+                                {% endif %}
+                            </div>
+                            <div class="col-5 text-right">
+                                <div class="star-rating"><small class="card-subtitle mt-4 text-muted">Rating</small>
+                                    {{ post.renderScore|raw }}
+                                    <input type="hidden" name="whatever1" class="rating-value" value="2.56">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
-    </ul>
+
+    </div>
+
 
 {% endblock %}

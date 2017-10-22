@@ -91,13 +91,9 @@ class UserController extends Controller
     {
         $this->request = $request;
         $service = $this->getService();
-        $users = $service->getUsersAll();
+        $users = [];
         try{
-            //$users = $service->getUsersAll();
-            //foreach($users as $user){
-            //    $users[$user->getEmail()] = $user->getEmail();
-            //}
-
+            $users = $service->getUsersAll();
         }
         catch(PDOException $e)
         {
