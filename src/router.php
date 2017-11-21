@@ -53,6 +53,9 @@ $routes->add('user-view', new Routing\Route('/users/{id}', array(
 
 
 // posts
+$routes->add('post-public', new Routing\Route('/posts/public', array(
+    '_controller' => 'Post\Controller\PostController::publicIndexAction',
+)));
 $routes->add('post-list', new Routing\Route('/posts/list', array(
     '_controller' => 'Post\Controller\PostController::indexAction',
 )));

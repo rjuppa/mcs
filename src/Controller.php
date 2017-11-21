@@ -21,9 +21,19 @@ class Controller
 
     /** @var User $authUser  */
     protected $authUser = null;
+
+    /** @var bool  */
     protected $isUserAuthenticated = false;
 
+    /** @var array  */
+    protected $roles = array();
 
+
+    /**
+     * @param $db
+     * @param $user
+     * @param $pass
+     */
     public function setConnection($db, $user, $pass){
         $this->db = $db;
         $this->user = $user;
@@ -44,6 +54,38 @@ class Controller
                 $this->isUserAuthenticated = true;
             }
         }
+    }
+
+    /**
+     * @param $db
+     * @param $user
+     * @param $pass
+     */
+    public function setService($db, $user, $pass){
+        // need to override
+    }
+
+
+    /**
+     * @param $roles
+     * @return bool
+     * @throws UnauthorizedException
+     */
+    protected function doAuthorize($roles){
+        if (!$this->isUserAuthenticated) {
+            throw new NotAuthenticatedException();
+        }
+        if(empty($roles)){
+            return true;
+        }
+        foreach (User::ROLE_NAMES as $role){
+            if( in_array($role, $roles) ){
+                if( $this->authUser->getTypeText() == $role ){
+                    return true;
+                }
+            }
+        }
+        throw new \UnauthorizedException('Unauthorized.');
     }
 
     public function generateCSRFToken(){
@@ -87,7 +129,7 @@ class Controller
 
     public function loginRequired(){
         if (!$this->isUserAuthenticated) {
-            $this->redirect(sprintf('%s/login'));
+           throw new NotAuthenticatedException();
         }
     }
 

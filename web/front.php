@@ -13,12 +13,13 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing;
 use Symfony\Component\HttpKernel\Controller\ArgumentResolver;
 use Symfony\Component\HttpKernel\Controller\ControllerResolver;
-
+use Tracy\Debugger;
 
 define('BASE_URL',     '/mcs/web');
 define('FRONT_URL',    '/mcs/web/front.php');
-define('PROJ_PATH',    '/opt/lampp/htdocs/mcs');
+define('PROJ_PATH',    '/Applications/XAMPP/htdocs/mcs');
 
+//Debugger::enable();
 
 session_start();
 
@@ -34,8 +35,6 @@ $matcher = new Routing\Matcher\UrlMatcher($routes, $context);
 $controllerResolver = new ControllerResolver();
 $argumentResolver = new ArgumentResolver();
 
-$a = $_GET;
-$b = $_POST;
 require __DIR__.'/../src/Framework.php';
 $framework = new Framework($matcher, $controllerResolver, $argumentResolver);
 $response = $framework->handle($request, $twig);

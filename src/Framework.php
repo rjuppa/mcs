@@ -14,6 +14,9 @@ use Symfony\Component\Routing\Exception\ResourceNotFoundException;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 
 
+class UnauthorizedException extends Exception{}
+class NotAuthenticatedException extends Exception{}
+
 class Framework
 {
     protected $matcher;
@@ -28,15 +31,15 @@ class Framework
     }
 
     public function getDBString(){
-        return 'mysql:host=localhost;port=3307;dbname=mcs';
+        return 'mysql:host=127.0.0.1;port=3306;dbname=mcs';
     }
 
     public function getDBUser(){
-        return 'mcs';
+        return 'admin';
     }
 
     public function getDBPass(){
-        return getenv('MCS_PASSWORD');
+        return 'admin'; // getenv('MCS_PASSWORD');
     }
 
     public function handle(Request $request, $twig)
@@ -49,13 +52,13 @@ class Framework
 
             /** @var Controller $controllerObj */
             $controllerObj = $controller[0];
-            $controllerObj->setConnection($this->getDBString(), $this->getDBUser(), $this->getDBPass());
             $controllerObj->setTwig($twig);
             $controllerObj->setRequest($request);
+            $controllerObj->setService($this->getDBString(), $this->getDBUser(), $this->getDBPass());
             $arguments = $this->argumentResolver->getArguments($request, $controller);
             return call_user_func_array($controller, $arguments);
-
-        } catch (ResourceNotFoundException $e) {
+        }
+        catch (ResourceNotFoundException $e) {
             $context = array('message' => 'Stránka nebyla nalezena.');
 
             /** @var SimplePageController $controllerObj */
@@ -63,7 +66,19 @@ class Framework
             $controllerObj->setTwig($twig);
             $controllerObj->setRequest($request);
             return $controllerObj->render('404.html.twig', $context);
-        } catch (\Exception $e) {
+        }
+        catch(NotAuthenticatedException $e){
+            return $controllerObj->redirect(sprintf('%s/login'));
+        }
+        catch(UnauthorizedException $e){
+            $context = array('message' => 'Nemáte dostatečná opravnění.');
+            /** @var SimplePageController $controllerObj */
+            $controllerObj = new SimplePageController();
+            $controllerObj->setTwig($twig);
+            $controllerObj->setRequest($request);
+            return $controllerObj->render('401.html.twig', $context);
+        }
+        catch (\Exception $e) {
             $context = array('message' => $e->getMessage());
 
             /** @var SimplePageController $controllerObj */

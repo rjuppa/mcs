@@ -12,9 +12,11 @@ use DateTime;
 
 class User
 {
-    public static $AUTHOR = 1;
-    public static $REVIEWER = 2;
-    public static $ADMIN = 4;
+    public const AUTHOR = 1;
+    public const REVIEWER = 2;
+    public const ADMIN = 4;
+
+    public const ROLE_NAMES = array('ADMIN', 'AUTHOR', 'REVIEWER');
 
     protected $id;
     protected $firstName;
@@ -26,10 +28,8 @@ class User
     protected $created;
     protected $deleted;
 
-    public $types = array('ADMIN', 'AUTHOR', 'REVIEWER');
-
     public function __construct(){
-        $this->type = 1;    //AUTHOR
+        $this->type = self::AUTHOR;    //AUTHOR
         $this->isActive = true;
         $this->created = new DateTime();
     }
@@ -93,9 +93,9 @@ class User
 
     public function setTypeText($typeString){
         switch ($typeString){
-            case 'AUTHOR': return User::$AUTHOR;
-            case 'REVIEWER': return User::$REVIEWER;
-            case 'ADMIN': return User::$ADMIN;
+            case 'AUTHOR': return self::AUTHOR;
+            case 'REVIEWER': return self::REVIEWER;
+            case 'ADMIN': return self::ADMIN;
         }
         throw new \Exception('User Type is not valid. (Supported: ADMIN, AUTHOR, REVIEWER)');
     }
@@ -130,19 +130,19 @@ class User
     }
 
     public function isAdmin(){
-        return intval($this->type) == User::$ADMIN;
+        return intval($this->type) == self::ADMIN;
     }
 
     public function isAuthor(){
-        return intval($this->type) == User::$AUTHOR;
+        return intval($this->type) == self::AUTHOR;
     }
 
     public function isReviewer(){
-        return intval($this->type) == User::$REVIEWER;
+        return intval($this->type) == self::REVIEWER;
     }
 
     public function isReviewerOrAdmin(){
-        return intval($this->type) == User::$REVIEWER || intval($this->type) == User::$ADMIN;
+        return intval($this->type) == self::REVIEWER || intval($this->type) == self::ADMIN;
     }
 
 }

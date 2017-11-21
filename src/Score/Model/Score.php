@@ -21,6 +21,9 @@ class Score
     protected $postId;
     protected $reviewerId;
 
+    /** @var User */
+    protected $reviewer;
+
     protected $ratingOriginality;
     protected $ratingLanguage;
     protected $ratingQuality;
@@ -36,15 +39,42 @@ class Score
 
     public function getPostId(){ return $this->postId; }
     public function getReviewerId(){ return $this->reviewerId; }
+    public function getReviewer(){ return $this->reviewer; }
+    public function getReviewerName(){
+        if($this->reviewer){
+            return $this->reviewer->getDisplayName();
+        }
+        return '';
+    }
     public function getRatingOriginality(){ return $this->ratingOriginality; }
     public function getRatingLanguage(){ return $this->ratingLanguage; }
     public function getRatingQuality(){ return $this->ratingQuality; }
-    public function getScore(){ return $this->score; }
+    public function getScore(){
+        $counter = 0;
+        $sum = 0;
+        if( $this->ratingOriginality > 0){
+            $sum += $this->ratingOriginality;
+            $counter++;
+        }
+        if( $this->ratingLanguage > 0){
+            $sum += $this->ratingLanguage;
+            $counter++;
+        }
+        if( $this->ratingQuality > 0){
+            $sum += $this->ratingQuality;
+            $counter++;
+        }
+        if( $sum > 0 ){
+            return round($sum / $counter, 2);
+        }
+        return -1;
+    }
     public function getNote(){ return $this->note; }
     public function getCreated(){ return $this->created; }
 
     public function setPostId($id){ $this->postId = $id; }
     public function setReviewerId($id){ $this->reviewerId = $id; }
+    public function setReviewer($reviewer){ $this->reviewer = $reviewer; }
     public function setRatingOriginality($rating){ $this->validateRating($rating); $this->ratingOriginality = intval($rating); }
     public function setRatingLanguage($rating){ $this->validateRating($rating); $this->ratingLanguage = intval($rating); }
     public function setRatingQuality($rating){ $this->validateRating($rating); $this->ratingQuality = intval($rating); }
@@ -55,7 +85,7 @@ class Score
     private function validateRating($rating){
         if (!empty($rating)) {
             $rating = intval($rating);
-            if( $rating > 0 && $rating < 6 ){
+            if( $rating > -2 && $rating < 6 ){
                 return true;
             }
         }

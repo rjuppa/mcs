@@ -182,6 +182,19 @@ class PostService extends BaseService
         return $this->getPostById($post->getId());
     }
 
+    public function publishPost(Post $post = null){
+        $sql = "UPDATE posts SET published=:published, published_by_id=:publishedId WHERE id=:id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':published', $published, PDO::PARAM_STR);
+        $stmt->bindParam(':publishedId', $publishedId, PDO::PARAM_STR);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $published = $post->getPublished()->format('Y-m-d H:i:s');
+        $publishedId = $post->getPublishedById();
+        $id = $post->getId();
+        $stmt->execute();
+        return $this->getPostById($post->getId());
+    }
+
     /*
      * delete an existing post
      */

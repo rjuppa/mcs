@@ -6,7 +6,7 @@
         <div class="col-12">
             <h4>{{ post.getTitle }}</h4>
             <h6 class="card-subtitle mb-4 text-muted">
-                {{ post.getAuthorName }}
+                <small>Autor: </small> {{ post.getAuthorName }}
                 <small class="float-right">Publikováno:
                     {% if post.getPublished %}
                         {{ post.getPublished }}
@@ -57,6 +57,7 @@
                         <div>
                             <form action="" method="post">
                                 <input type="hidden" name="csrftoken" value="{{ csrftoken }}" >
+                                <input type="hidden" name="name" value="rating" />
                                 <div class="col-12 text-right">
                                     <div class="star-rating" >
                                         <h6 class="card-subtitle mt-4 text-muted text-right m-1">Hodnocení</h6>
@@ -122,28 +123,80 @@
                 {% endif %}
 
                 {% if authenticatedUser.isAuthor or authenticatedUser.isAdmin %}
-                        <div class="col-12 text-right">
-                            <div class="star-rating" style="margin-right: 150px">
-                                <h6 class="card-subtitle mt-4 text-muted text-right">Rating</h6>
-                            </div>
-                        </div>
-                        <div class="col-12 text-right">
-                            <div class="star-rating"><span>Originalita</span>
-                                {{ post.renderOriginality|raw }}
-                            </div>
-                        </div>
-                        <div class="col-12 text-right">
-                            <div class="star-rating"><span>Jazyk</span>
-                                {{ post.renderLanguage|raw }}
-                            </div>
-                        </div>
-                        <div class="col-12 text-right">
-                            <div class="star-rating"><span>Kvalita</span>
-                                {{ post.renderQuality|raw }}
-                            </div>
-                        </div>
-                {% endif %}
+                    <div class="row">
+                        <div class="col-xs-12 col-md-6">
+                        {% if authenticatedUser.isAdmin %}
+                            <table class="table table-sm table-responsive">
+                                <tr>
+                                    <th>Recenzenti příspěvku</th>
+                                    <th>Skore</th>
+                                    <th></th>
+                                </tr>
 
+                                {% for score in post.scores %}
+                                    <tr>
+                                        <td>{{ score.getReviewer.getDisplayName }}</td>
+                                        <td>{% if score.getScore > 0 %}{{ score.getScore }}{% else %}-{% endif %}</td>
+                                        <td>
+                                            <form class="float-right" action="" method="post">
+                                                <input type="hidden" name="csrftoken" value="{{ csrftoken }}" />
+                                                <input type="hidden" name="name" value="remove_reviewer" />
+                                                <input type="hidden" name="reviewerId" value="{{ score.getReviewerId }}" />
+                                                <input type="submit" name="submit" value="Odebrat" class="btn btn-danger btn-sm" />
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+
+                            <table class="table table-sm table-responsive mt-5">
+                                <tr>
+                                    <th>Ostatní recenzenti</th>
+                                    <th class="float-right">Recenzovat</th>
+                                </tr>
+
+                                {% for reviewer in reviewers %}
+                                    <tr>
+                                        <td>{{ reviewer.getDisplayName }}</td>
+                                        <td>
+                                            <form class="float-right" action="" method="post">
+                                                <input type="hidden" name="csrftoken" value="{{ csrftoken }}" />
+                                                <input type="hidden" name="name" value="reviewer" />
+                                                <input type="hidden" name="reviewerId" value="{{ reviewer.getId }}" />
+                                                <input type="submit" name="submit" value="Recenzovat" class="btn btn-success btn-sm" />
+                                            </form>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </table>
+
+                        {% endif %}
+                        </div>
+                        <div class="col-xs-12 col-md-6 text-right">
+                            <div class="col-12 text-right">
+                                <div class="star-rating" style="margin-right: 150px">
+                                    <h6 class="card-subtitle mt-4 text-muted text-right">Rating</h6>
+                                </div>
+                            </div>
+                            <div class="col-12 text-right">
+                                <div class="star-rating"><span>Originalita</span>
+                                    {{ post.renderOriginality|raw }}
+                                </div>
+                            </div>
+                            <div class="col-12 text-right">
+                                <div class="star-rating"><span>Jazyk</span>
+                                    {{ post.renderLanguage|raw }}
+                                </div>
+                            </div>
+                            <div class="col-12 text-right">
+                                <div class="star-rating"><span>Kvalita</span>
+                                    {{ post.renderQuality|raw }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                {% endif %}
 
             {% endif %}
 
@@ -156,18 +209,30 @@
 
     <div class="row mx-auto text-center col-12 mt-2 bg-light p-2">
         <div class="col-4 text-left">
-            {% if isUserAuthenticated %}
-                <a href="{{ frontUrl }}/posts/mylist" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
+            {% if not isUserAuthenticated %}
+                <a href="{{ frontUrl }}/posts/public" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
             {% else %}
-                <a href="{{ frontUrl }}/posts/list" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
+                {% if post.isMyPost %}
+                    <a href="{{ frontUrl }}/posts/mylist" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
+                {% else %}
+                    {% if authenticatedUser.isAdmin %}
+                        <a href="{{ frontUrl }}/posts/list" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
+                    {% else %}
+                        <a href="{{ frontUrl }}/posts/public" class="btn btn-outline-warning btn-sm">Zpět na výpis</a>
+                    {% endif %}
+                {% endif %}
             {% endif %}
         </div>
         <div class="col-6">
-            {% if authenticatedUser.isAuthor %}
+            {% if authenticatedUser.isAuthor and post.isMyPost %}
                 <a href="{{ post.getEditUrl }}" class="btn btn-sm btn-warning">Editovat</a>
             {% endif %}
             {% if authenticatedUser.isAdmin %}
-                <a href="{{ post.getPublishUrl }}" class="btn btn-sm btn-warning">Publikovat</a>
+                {% if post.getPublished %}
+                    <span class="text-success float-right">Publikováno: {{ post.getPublished|date }}</span>
+                {% else %}
+                    <a href="{{ post.getPublishUrl }}" class="btn btn-sm btn-warning">Publikovat</a>
+                {% endif %}
             {% endif %}
 
         </div>

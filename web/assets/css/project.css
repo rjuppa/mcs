@@ -51,3 +51,13 @@ label{ font-weight: bold;}
     background-image: none;
     border-color: #c09853;
 }
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background-color: white;
+    color: #d5d5d5;
+    text-align: center;
+}

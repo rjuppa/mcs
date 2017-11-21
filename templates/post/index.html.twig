@@ -5,7 +5,7 @@
     <div class="row">
         <div class="col-sm-12 mt-3">
             <h5>Články a Příspěvky
-            {% if authenticatedUser.isAuthor or authenticatedUser.isAdmin %}
+            {% if authenticatedUser.isAuthor %}
                 <a href="{{ frontUrl }}/posts/create" class="btn btn-sm btn-outline-warning float-right">Nový příspěvek</a>
             {% endif %}
             </h5>
@@ -41,7 +41,6 @@
                             <div class="col-5 text-right">
                                 <div class="star-rating"><small class="card-subtitle mt-4 text-muted">Rating</small>
                                     {{ post.renderScore|raw }}
-                                    <input type="hidden" name="whatever1" class="rating-value" value="2.56">
                                 </div>
                             </div>
                         </div>

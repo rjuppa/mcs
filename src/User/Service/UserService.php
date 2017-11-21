@@ -46,7 +46,7 @@ class UserService extends BaseService
             throw new UserNotFoundException();
         }
 
-        if( $pass == $hash ){  //md5($pass) == $hash
+        if( md5($pass) == $hash ){  //md5($pass) == $hash
             // success
             return $user;
         }
@@ -55,8 +55,9 @@ class UserService extends BaseService
         return null;
     }
 
-    /*
-     * returns all users
+    /** List all users
+     *
+     * @return array
      */
     public function getUsersAll(){
         $users = array();
@@ -71,8 +72,43 @@ class UserService extends BaseService
         return $users;
     }
 
-    /*
-     * returns a user by ID
+    /** List all reviewers
+     *
+     * @return array
+     */
+    public function getReviewers(){
+        $users = array();
+        $sql = "SELECT * FROM users WHERE deleted=0 AND type=2;";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_CLASS);
+        foreach($result as $row){
+            $user = $this->mapUser($row);
+            array_push($users, $user);
+        }
+        return $users;
+    }
+
+    public function getReviewersForPost($postId){
+        $users = array();
+        $sql = "SELECT users.* FROM users JOIN scores ON scores.reviewer_id=users.id WHERE scores.post_id=:postId AND users.deleted=0 AND users.type=2;";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':postId', $id, PDO::PARAM_INT);
+        $id = intval($postId);
+        $stmt->execute();
+        $result = $stmt->fetchAll(PDO::FETCH_CLASS);
+        foreach($result as $row){
+            $user = $this->mapUser($row);
+            array_push($users, $user);
+        }
+        return $users;
+    }
+
+
+    /**
+     * @param null $id
+     * @return User
+     * @throws UserNotFoundException
      */
     public function getUserById($id = null){
         $sql = "SELECT * FROM users WHERE deleted=0 AND id=:id";
@@ -87,8 +123,11 @@ class UserService extends BaseService
         return $this->mapUser($row);
     }
 
-    /*
-     * returns a user by email
+
+    /**
+     * @param null $email
+     * @return User
+     * @throws UserNotFoundException
      */
     public function getUserByEmail($email = null){
         $sql = "SELECT * FROM users WHERE deleted=0 AND email=:email";
@@ -103,8 +142,11 @@ class UserService extends BaseService
         return $this->mapUser($row);
     }
 
-    /*
-     * returns a user hash by email
+
+    /**
+     * @param $email
+     * @return mixed|string
+     * @throws UserNotFoundException
      */
     public function getHashByEmail($email){
         $email = strtolower($email);
@@ -113,6 +155,8 @@ class UserService extends BaseService
         $stmt->bindParam(':email', $email, PDO::PARAM_STR);
         $stmt->execute();
         $hash = $stmt->fetchColumn(0);
+
+        $hash = md5($email);    // temporary hack
         if(empty($hash)){
             throw new UserNotFoundException();
         }

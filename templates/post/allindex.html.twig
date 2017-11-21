@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="card mx-auto col-md-12 pr-0 pl-0 mt-4">
+        <div class="card-header text-white bg-warning mb-3">
+            <h5>Všechny příspěvky/články
+                {% if user.isAuthor %}
+                    <a href="{{ frontUrl }}/posts/create" class="btn btn-sm btn-outline-warning border-white text-white float-right">Nový příspěvek</a>
+                {% endif %}
+                </h5>
+        </div>
+        <div class="card-body">
+
+            <table class="table table-sm table-responsive">
+                <tr>
+                    <th>Nadpis</th>
+                    <th class="d-none d-sm-table-cell">Autor</th>
+                    <th class="d-none d-md-table-cell">Recenzenti</th>
+                    <th class="d-none d-md-table-cell">Skore</th>
+                    <th></th>
+                </tr>
+
+                {% for post in posts %}
+                    <tr>
+                        <td><a href="{{ post.getViewUrl }}">{{ post.getTitle }}</a></td>
+                        <td class="d-none d-sm-table-cell">{{ post.getAuthorName }}</td>
+                        <td class="d-none d-md-table-cell">{{ post.getReviewerCount }}/{{ post.getCountOfReviews }}</td>
+                        <td class="d-none d-md-table-cell"><div class="star-rating" title="{{ post.getTotal }}">{{ post.renderScore | raw }}</div></td>
+                        <td>
+                            {% if post.getPublished %}
+                                <span class="text-success float-right">Publikováno</span>
+                            {% else %}
+                            <form class="float-right" action="" method="post">
+                                <input type="hidden" name="csrftoken" value="{{ csrftoken }}" />
+                                <input type="hidden" name="name" value="publish" />
+                                <input type="hidden" name="postId" value="{{ post.getId }}" />
+                                <input type="submit" name="submit" value="Publikovat" class="btn btn-success btn-sm" />
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+
+        </div>
+    </div>
+
+
+{% endblock %}

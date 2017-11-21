@@ -64,6 +64,7 @@ function readfile_chunked($filename, $retbytes = TRUE) {
 
 class PostController extends Controller
 {
+    /** @var PostService  */
     protected $service;
     protected $target = '/';
 
@@ -79,15 +80,19 @@ class PostController extends Controller
         return new ScoreService($this->db, $this->user, $this->pass);
     }
 
-    public function indexAction()
-    {
-        $service = $this->getService();
+    public function setService($db, $user, $pass){
+        $this->setConnection($db, $user, $pass);
+        $this->service = $this->getService();
+    }
+
+
+    public function publicIndexAction(){
         $userService = $this->getUserService();
+        $scoreService = $this->getScoreService();
         $posts = [];
         try{
-            if( !$this->isUserAuthenticated ){
-                $posts = $service->getPostsPublished();                 // public posts
-            }
+            $posts = $this->service->getPostsPublished();                 // public posts
+
             /** @var Post $post */
             $post = null;
             foreach($posts as $post){
@@ -102,36 +107,123 @@ class PostController extends Controller
                 if( !empty($this->authUser)){
                     $post->setMyPost($this->authUser->getId());
                 }
+                $scores = $scoreService->getScoresForPost($post->getId());
+                if( !empty($scores)){
+                    $post->setScores($scores);
+                }
             }
         }
-        catch(PDOException $e)
-        {
+        catch(PDOException $e){
             $context = array('message' => sprintf('DB Chyba: %s', $e->getMessage()));
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
             $userService->close();
+            $scoreService->close();
         }
         $context = array('posts' => $posts);
         return $this->render('post/index.html.twig', $context);
     }
 
-    public function myIndexAction()
-    {
-        /** @var PostService $service */
-        $service = $this->getService();
+    /** List all Posts view for Admins
+     * 
+     * @return Response
+     */
+    public function indexAction(){
+        $this->doAuthorize(array('ADMIN'));
         $userService = $this->getUserService();
+        $scoreService = $this->getScoreService();
+        $posts = [];
+        try{
+            if( !$this->isUserAuthenticated ){
+                $posts = $this->service->getPostsAll();                 // all posts
+            }
+            /** @var Post $post */
+            $post = null;
+            foreach($posts as $post){
+                if( !empty($post->getAuthorId()) ){
+                    $user = $userService->getUserById($post->getAuthorId());
+                    $post->setAuthor($user);
+                }
+                if( !empty($post->getPublishedById()) ){
+                    $user = $userService->getUserById($post->getPublishedById());
+                    $post->setPublishedBy($user);
+                }
+                if( !empty($this->authUser)){
+                    $post->setMyPost($this->authUser->getId());
+                }
+                $scores = $scoreService->getScoresForPost($post->getId());
+                if( !empty($scores)){
+                    $post->setScores($scores);
+                }
+            }
+        }
+        catch(PDOException $e){
+            $context = array('message' => sprintf('DB Chyba: %s', $e->getMessage()));
+            return $this->render('500.html.twig', $context);
+        }
+        finally{
+            $this->service->close();
+            $userService->close();
+            $scoreService->close();
+        }
+        $context = array('posts' => $posts);
+        return $this->render('post/index.html.twig', $context);
+    }
+
+    public function myIndexAction(){
+        $this->loginRequired();
+        // POST
+        if( $_SERVER['REQUEST_METHOD'] == 'POST') {
+            $csrf = $_POST['csrftoken'];
+            if (!empty($csrf)) {
+                if ($csrf == $_SESSION['csrftoken']) {
+                    $formName = $_POST['name'];
+                    if ($formName == 'publish') {
+                        $postId = $_POST['postId'];
+                        if (!empty($postId)) {
+                            $scoreService = $this->getScoreService();
+
+                            /** @var Post $score */
+                            $post = null;
+
+                            // Update existing OR Create new rating
+                            $this->service = $this->getService();
+                            try {
+                                $post = $this->service->getPostById($postId);
+                                $post->setPublished(new \DateTime());
+                                $post->setPublishedById($this->authUser->getId());
+                                $this->service->publishPost($post);
+
+                            } catch (PostNotFoundException $e) {
+                                $context = array('message' => 'Příspěvek nebyl nalezen.');
+                                return $this->render('404.html.twig', $context);
+                            } catch (PDOException $e) {
+                                $context = array('message' => sprintf('DB Chyba: %s', $e->getMessage()));
+                                return $this->render('500.html.twig', $context);
+                            } finally {
+                                $this->service->close();
+                            }
+                        }
+                    }
+                }
+            }
+            return $this->redirect('/posts/mylist');
+        }
+        $userService = $this->getUserService();
+        $scoreService = $this->getScoreService();
+        $this->service = $this->getService();
         $posts = [];
         try{
             if($this->authUser->isAuthor()){
-                $posts = $service->getPostsByUser($this->authUser->getId());   // author posts
+                $posts = $this->service->getPostsByUser($this->authUser->getId());          // author posts
             }
             if($this->authUser->isReviewer()){
-                $posts = $service->getPostsByReviewer($this->authUser->getId());     // reviewer posts
+                $posts = $this->service->getPostsByReviewer($this->authUser->getId());      // reviewer posts
             }
             if($this->authUser->isAdmin()){
-                $posts = $service->getPostsAll();                   // all posts
+                $posts = $this->service->getPostsAll();                                     // all posts
             }
 
             /** @var Post $post */
@@ -148,6 +240,10 @@ class PostController extends Controller
                 if( !empty($this->authUser)){
                     $post->setMyPost($this->authUser->getId());
                 }
+                $scores = $scoreService->getScoresForPost($post->getId());
+                if( !empty($scores)){
+                    $post->setScores($scores);
+                }
             }
         }
         catch(PDOException $e)
@@ -156,10 +252,14 @@ class PostController extends Controller
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
             $userService->close();
+            $scoreService->close();
         }
         $context = array('posts' => $posts);
+        if($this->authUser->isAdmin()){
+            return $this->render('post/allindex.html.twig', $context);
+        }
         return $this->render('post/index.html.twig', $context);
     }
 
@@ -168,54 +268,86 @@ class PostController extends Controller
         // POST
         if( $_SERVER['REQUEST_METHOD'] == 'POST') {
             $csrf = $_POST['csrftoken'];
-            $originality = $_POST['originality'];
-            $language = $_POST['language'];
-            $quality = $_POST['quality'];
-
-            if (!empty($csrf) && !empty($originality) && !empty($language) && !empty($quality)) {
+            if (!empty($csrf)) {
                 if ($csrf == $_SESSION['csrftoken']) {
-                    $scoreService = $this->getScoreService();
+                    $formName = $_POST['name'];
+                    if( $formName == 'rating' ){
+                        $originality = $_POST['originality'];
+                        $language = $_POST['language'];
+                        $quality = $_POST['quality'];
 
-                    /** @var Score $score */
-                    $score = null;
+                        if (!empty($originality) && !empty($language) && !empty($quality)) {
+                            $scoreService = $this->getScoreService();
 
-                    // Update existing OR Create new rating
-                    $service = $this->getService();
-                    try {
-                        $score = $scoreService->getScoreById($id, $this->authUser->getId());
-                        if( empty($score)){
-                            // create a new score
-                            $score = new Score($id, $this->authUser->getId());
-                            $score->setRatingOriginality($originality);
-                            $score->setRatingLanguage($language);
-                            $score->setRatingQuality($quality);
-                            $scoreService->createScore($score);
+                            /** @var Score $score */
+                            $score = null;
+
+                            // Update existing OR Create new rating
+                            $this->service = $this->getService();
+                            try {
+                                $score = $scoreService->getScoreById($id, $this->authUser->getId());
+                                if( empty($score)){
+                                    // create a new score
+                                    $score = $scoreService->createScore($id, $this->authUser->getId());
+                                }
+
+                                // update
+                                $score->setRatingOriginality($originality);
+                                $score->setRatingLanguage($language);
+                                $score->setRatingQuality($quality);
+                                $scoreService->editScore($score);
+
+                            } catch (PDOException $e) {
+                                $context['message'] = sprintf('DB Chyba: %s', $e->getMessage());
+                                return $this->render('500.html.twig', $context);
+                            } finally {
+                                $scoreService->close();
+                            }
                         }
-                        else{
-                            // update
-                            $score->setRatingOriginality($originality);
-                            $score->setRatingLanguage($language);
-                            $score->setRatingQuality($quality);
-                            $scoreService->editScore($score);
+                    }
+                    else if( $formName == 'reviewer' ){
+                        $reviewerId = $_POST['reviewerId'];
+
+                        if (!empty($reviewerId)) {
+                            $scoreService = $this->getScoreService();
+                            try {
+                                $scoreService->createScore($id,  $reviewerId);
+                            } catch (PDOException $e) {
+                                $context['message'] = sprintf('DB Chyba: %s', $e->getMessage());
+                                return $this->render('500.html.twig', $context);
+                            } finally {
+                                $scoreService->close();
+                            }
                         }
-                    } catch (PDOException $e) {
-                        $context['message'] = sprintf('DB Chyba: %s', $e->getMessage());
-                        return $this->render('500.html.twig', $context);
-                    } finally {
-                        $scoreService->close();
+                    }
+                    else if( $formName == 'remove_reviewer' ){
+                        $reviewerId = $_POST['reviewerId'];
+
+                        if (!empty($reviewerId)) {
+                            $scoreService = $this->getScoreService();
+                            try {
+                                $scoreService->removeScore($id,  $reviewerId);
+                            } catch (PDOException $e) {
+                                $context['message'] = sprintf('DB Chyba: %s', $e->getMessage());
+                                return $this->render('500.html.twig', $context);
+                            } finally {
+                                $scoreService->close();
+                            }
+                        }
                     }
                 }
             }
+            return $this->redirect('/posts/'.$id);
         }
 
         // open connection
-        $service = $this->getService();
+        $this->service = $this->getService();
         $userService = $this->getUserService();
         $scoreService = $this->getScoreService();
-
+        $reviewers = array();
         try{
             // load a post
-            $post = $service->getPostById($id);
+            $post = $this->service->getPostById($id);
             if( !empty($post->getAuthorId()) ){
                 $user = $userService->getUserById($post->getAuthorId());
                 $post->setAuthor($user);
@@ -225,7 +357,11 @@ class PostController extends Controller
                 $post->setPublishedBy($user);
             }
             $scores = $scoreService->getScoresForPost($id);
-            if( !empty($scores)){
+            if( !empty($scores) ){
+                foreach ($scores as $score){
+                    $reviewer = $userService->getUserById($score->getReviewerId());
+                    $score->setReviewer($reviewer);
+                }
                 $post->setScores($scores);
                 if( $this->isUserAuthenticated ) {
                     $post->setUserScore($this->authUser->getId());
@@ -233,6 +369,13 @@ class PostController extends Controller
             }
             if( $this->isUserAuthenticated ){
                 $post->setMyPost($this->authUser->getId());
+                $reviewers = $userService->getReviewers();
+                foreach ($post->getScores() as $score){
+                    // remove postReviewers from all Reviewers
+                    if (($key = array_search($score->getReviewer(), $reviewers)) !== false) {
+                        unset($reviewers[$key]);
+                    }
+                }
             }
         }
         catch(PostNotFoundException $e){
@@ -245,11 +388,11 @@ class PostController extends Controller
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
             $userService->close();
             $scoreService->close();
         }
-        $context = array('post' => $post);
+        $context = array('post' => $post, 'reviewers' => $reviewers);
         return $this->render('post/view.html.twig', $context);
     }
 
@@ -291,9 +434,9 @@ class PostController extends Controller
                     }
 
                     // Create a new post
-                    $service = $this->getService();
+                    $this->service = $this->getService();
                     try{
-                        $postId = $service->createPost($post);
+                        $postId = $this->service->createPost($post);
 
                         // SAVE ATTACHMENT TO DB
                         if( !empty($_FILES['file'])) {
@@ -302,7 +445,7 @@ class PostController extends Controller
                             $fp = fopen($tmpName, 'rb'); // read binary
                             $file = file_get_contents($_FILES['file']['tmp_name']);
                             $filename = addslashes($_FILES['file']['name']);
-                            $service->attachFile($postId, $filename, $file);
+                            $this->service->attachFile($postId, $filename, $file);
                         }
                     }
                     catch(PostDuplicateTitleException $e){
@@ -321,7 +464,7 @@ class PostController extends Controller
                         return $this->render('500.html.twig', $context);
                     }
                     finally{
-                        $service->close();
+                        $this->service->close();
                     }
                 }
             }
@@ -336,10 +479,9 @@ class PostController extends Controller
         // LOGIN REQUIRED
         $this->loginRequired();
 
-        $service = $this->getService();
         $userService = $this->getUserService();
         try{
-            $post = $service->getPostById($id);
+            $post = $this->service->getPostById($id);
             if( !empty($post->getAuthorId()) ){
                 $user = $userService->getUserById($post->getAuthorId());
                 $post->setAuthor($user);
@@ -362,7 +504,7 @@ class PostController extends Controller
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
             $userService->close();
         }
 
@@ -405,7 +547,7 @@ class PostController extends Controller
                     // SAVE ATTACHMENT TO DB
                     $service = $this->getService();
                     try{
-                        $service->editPost($post);
+                        $this->service->editPost($post);
 
                         if( !empty($_FILES['file'])) {
                             // handle an uploaded file
@@ -414,7 +556,7 @@ class PostController extends Controller
 
                             $file = file_get_contents($_FILES['file']['tmp_name']); //SQL Injection defence!
                             $filename = addslashes($_FILES['file']['name']);
-                            $service->attachFile($post->getId(), $filename, $file);
+                            $this->service->attachFile($post->getId(), $filename, $file);
                         }
                     }
                     catch(PDOException $e)
@@ -431,7 +573,7 @@ class PostController extends Controller
                         return $this->render('500.html.twig', $context);
                     }
                     finally{
-                        $service->close();
+                        $this->service->close();
                     }
                 }
             }
@@ -449,7 +591,7 @@ class PostController extends Controller
 
         $service = $this->getService();
         try{
-            $post = $service->getPostById($id);
+            $post = $this->service->getPostById($id);
             if( !empty($authUser)){
                 $post->setMyPost($authUser->getId());
             }
@@ -464,7 +606,7 @@ class PostController extends Controller
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
         }
 
         if( $_SERVER['REQUEST_METHOD'] == 'GET'){
@@ -478,7 +620,7 @@ class PostController extends Controller
                 if( $csrf == $_SESSION['csrftoken']){
                     $service = $this->getService();
                     try{
-                        $service->deletePost($post);
+                        $this->service->deletePost($post);
                     }
                     catch(PDOException $e)
                     {
@@ -486,7 +628,7 @@ class PostController extends Controller
                         return $this->render('500.html.twig', $context);
                     }
                     finally{
-                        $service->close();
+                        $this->service->close();
                     }
                 }
             }
@@ -510,10 +652,10 @@ class PostController extends Controller
         $post = null;
         $service = $this->getService();
         try {
-            $post = $service->getPostById($id);
-            $post->setPublished = new DateTime();
+            $post = $this->service->getPostById($id);
+            $post->setPublished = new \DateTime();
             $post->setPublishedById = $this->authUser->getId();
-            $service->editPost($post);
+            $this->service->editPost($post);
 
         } catch (PostNotFoundException $e) {
             $context = array('message' => 'Příspěvek nebyl nalezen.');
@@ -522,14 +664,14 @@ class PostController extends Controller
             $context = array('message' => sprintf('DB Chyba: %s', $e->getMessage()));
             return $this->render('500.html.twig', $context);
         } finally {
-            $service->close();
+            $this->service->close();
         }
     }
 
     public function downloadAction ($id){
         $service = $this->getService();
         try{
-            $post = $service->getPostById($id);
+            $post = $this->service->getPostById($id);
         }
         catch(PostNotFoundException $e){
             $context = array('message' => 'Příspěvek nebyl nalezen.');
@@ -541,7 +683,7 @@ class PostController extends Controller
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
         }
 
         $this->target = sprintf('%s/var/temp/%s', PROJ_PATH, $post->getFileName());

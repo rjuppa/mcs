@@ -9,6 +9,9 @@
 
 class SimplePageController extends Controller
 {
+    public function setService($db, $user, $pass){
+        $this->setConnection($db, $user, $pass);
+    }
 
     public function indexAction()
     {

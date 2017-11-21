@@ -20,23 +20,35 @@ use \User\Service\UserDuplicateEmailException;
 
 class UserController extends Controller
 {
+    /** @var UserService */
     protected $service;
 
     public function getService(){
         return new UserService($this->db, $this->user, $this->pass);
     }
 
-    public function logoutAction(Request $request){
-        session_destroy();
-        return $this->redirect('/home');
+    public function setService($db, $user, $pass){
+        $this->setConnection($db, $user, $pass);
+        $this->service = $this->getService();
     }
 
-    public function loginAction(Request $request)
-    {
-        $message = '';
-        $this->request = $request;
-        $service = $this->getService();
+    /** Logout View
+     *
+     *
+     * @return Response
+     */
+    public function logoutAction(){
+        session_destroy();
+        return $this->redirect('/posts/public');
+    }
 
+    /** Login View
+     *
+     *
+     * @return Response
+     */
+    public function loginAction(){
+        $message = '';
         if( $_SERVER['REQUEST_METHOD'] == 'GET'){
             return $this->render('login.html.twig');
         }
@@ -48,10 +60,10 @@ class UserController extends Controller
             if( !empty($csrf) && !empty($email) && !empty($password) ){
                 $email = strtolower($email);
                 try{
-                    $user = $service->getUserByEmail($email);
+                    $user = $this->service->getUserByEmail($email);
                     // authenticate
-                    if( $user && $user->getEmail() == $email){
-                        $authenticatedUser = $service->authenticate($email, $password);
+                    if( $user && $user->getIsActive() && $user->getEmail() == $email){
+                        $authenticatedUser = $this->service->authenticate($email, $password);
                         if( $authenticatedUser && $authenticatedUser->getEmail() == $email){
                             $_SESSION['authenticatedUser'] = $authenticatedUser;
                             $_SESSION['isUserAuthenticated'] = true;
@@ -70,37 +82,39 @@ class UserController extends Controller
                     $message = sprintf('DB error: %s', $e->getMessage());
                 }
                 finally{
-                    $service->close();
+                    $this->service->close();
                 }
             }
-            else{
+            if(empty($message)){
                 $message = 'Přihlášení se nepodařilo.';
             }
-
             $context = array('message' => $message);
             return $this->render('login.html.twig', $context);
         }
 
-        $users = $service->getUsersAll();
+        $users = $this->service->getUsersAll();
         $context = array('users' => $users);
         return $this->render('user/index.html.twig', $context);
 
     }
 
-    public function indexAction(Request $request)
-    {
-        $this->request = $request;
-        $service = $this->getService();
+
+    /** List of all users
+     *
+     * @return Response
+     */
+    public function indexAction() {
+        $this->doAuthorize(array('ADMIN'));
         $users = [];
         try{
-            $users = $service->getUsersAll();
+            $users = $this->service->getUsersAll();
         }
         catch(PDOException $e)
         {
             return new Response($e->getMessage());
         }
         finally{
-            $service->close();
+            $this->service->close();
         }
 
         $context = array(
@@ -109,12 +123,18 @@ class UserController extends Controller
 
     }
 
-    public function viewAction(Request $request, $id)
-    {
-        $this->request = $request;
-        $service = $this->getService();
+
+    /** Detail of a user
+     *
+     *
+     * @param $id
+     * @return Response
+     */
+    public function viewAction($id) {
+        $this->doAuthorize(array('ADMIN'));
+
         try{
-            $user = $service->getUserById($id);
+            $user = $this->service->getUserById($id);
         }
         catch(UserNotFoundException $e){
             $context = array('message' => 'Uživatel nebyl nalezen.');
@@ -126,17 +146,21 @@ class UserController extends Controller
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
         }
 
         $context = array('user' => $user);
         return $this->render('user/view.html.twig', $context);
     }
 
-    public function profileAction(Request $request)
-    {
-        $this->request = $request;
-        $service = $this->getService();
+
+    /** Authenticated user profile view
+     *
+     *
+     * @return Response
+     */
+    public function profileAction() {
+        $this->doAuthorize(array());
         try{
             $user = $_SESSION['authenticatedUser'];
         }
@@ -150,7 +174,7 @@ class UserController extends Controller
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
         }
 
         $context = array(
@@ -158,9 +182,14 @@ class UserController extends Controller
         return $this->render('user/profile.html.twig', $context);
     }
 
-    public function createAction(Request $request)
-    {
-        $this->request = $request;
+
+    /** Create a new user view
+     *
+     *
+     * @return Response
+     */
+    public function createAction(){
+        $this->doAuthorize(array('ADMIN'));
         $isActiveOpts = User::getIsActiveOpts();
         $typeOpts = User::getTypeOpts();
         $context = array(
@@ -196,16 +225,15 @@ class UserController extends Controller
                         // validation
                         $user->validate();
                     }
-                    catch (Exception $e){
+                    catch (\Exception $e){
                         $context['user'] = $user;
                         $context['message'] = $e->getMessage();
                         return $this->render('user/edit.html.twig', $context);
                     }
 
                     // Create a new user
-                    $service = $this->getService();
                     try{
-                        $userId = $service->createUser($user);
+                        $userId = $this->service->createUser($user);
                     }
                     catch(UserDuplicateEmailException $e){
                         $context['user'] = $user;
@@ -223,7 +251,7 @@ class UserController extends Controller
                         return $this->render('500.html.twig', $context);
                     }
                     finally{
-                        $service->close();
+                        $this->service->close();
                     }
                 }
             }
@@ -233,17 +261,16 @@ class UserController extends Controller
         return new Response('Bad request', 400);
     }
 
-    /**
-     * @param Request $request
+    /** Edit a user view
+     *
+     *
      * @param $id
      * @return Response
      */
-    public function editAction(Request $request, $id)
-    {
-        $this->request = $request;
-        $service = $this->getService();
+    public function editAction($id){
+        $this->doAuthorize(array('ADMIN'));
         try{
-            $user = $service->getUserById($id);
+            $user = $this->service->getUserById($id);
         }
         catch(UserNotFoundException $e){
             $context = array('message' => 'Uživatel nebyl nalezen.');
@@ -255,7 +282,7 @@ class UserController extends Controller
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
         }
 
         $isActiveOpts = User::getIsActiveOpts();
@@ -288,7 +315,7 @@ class UserController extends Controller
                         // validation
                         $user->validate();
                     }
-                    catch (Exception $e){
+                    catch (\Exception $e){
                         $context = array(
                             'user' => $user,
                             'title' => 'Editace uživatele',
@@ -299,9 +326,9 @@ class UserController extends Controller
                     }
 
                     // save
-                    $service = $this->getService();
+                    $this->service = $this->getService();
                     try{
-                        $service->editUser($user);
+                        $this->service->editUser($user);
                     }
                     catch(PDOException $e)
                     {
@@ -318,7 +345,7 @@ class UserController extends Controller
                         return $this->render('500.html.twig', $context);
                     }
                     finally{
-                        $service->close();
+                        $this->service->close();
                     }
                 }
             }
@@ -329,17 +356,16 @@ class UserController extends Controller
         return new Response('Bad request', 400);
     }
 
-    /**
-     * @param Request $request
+    /** Delete an existing user view
+     *
+     *
      * @param $id
      * @return Response
      */
-    public function deleteAction(Request $request, $id)
-    {
-        $this->request = $request;
-        $service = $this->getService();
+    public function deleteAction($id){
+        $this->doAuthorize(array('ADMIN'));
         try{
-            $user = $service->getUserById($id);
+            $user = $this->service->getUserById($id);
         }
         catch(UserNotFoundException $e){
             $context = array('message' => 'Uživatel nebyl nalezen.');
@@ -351,7 +377,7 @@ class UserController extends Controller
             return $this->render('500.html.twig', $context);
         }
         finally{
-            $service->close();
+            $this->service->close();
         }
 
         if( $_SERVER['REQUEST_METHOD'] == 'GET'){
@@ -363,9 +389,9 @@ class UserController extends Controller
             $csrf = $_POST['csrftoken'];
             if( !empty($csrf) && !empty($user) ) {
                 if( $csrf == $_SESSION['csrftoken']){
-                    $service = $this->getService();
+                    $this->service = $this->getService();
                     try{
-                        $service->deleteUser($user);
+                        $this->service->deleteUser($user);
                     }
                     catch(PDOException $e)
                     {
@@ -373,7 +399,7 @@ class UserController extends Controller
                         return $this->render('500.html.twig', $context);
                     }
                     finally{
-                        $service->close();
+                        $this->service->close();
                     }
                 }
             }

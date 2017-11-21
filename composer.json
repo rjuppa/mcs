@@ -3,6 +3,7 @@
         "symfony/http-foundation": "^3.3",
         "symfony/routing": "^3.3",
         "symfony/http-kernel": "^3.3",
+        "tracy/tracy": "^2.4",
         "twig/twig": "^2.0"
     },
     "autoload": {

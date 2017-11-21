@@ -39,6 +39,8 @@ class Post
     protected $scores = array();
     protected $hasUserScore = false;
     protected $userScore = array();
+    protected $reviewerCount = 0;
+    protected $countOfReviews = 0;
 
 
     public function __construct($title, $authorId, $abstract){
@@ -103,6 +105,8 @@ class Post
     public function getScores(){ return $this->scores; }
     public function hasRating(){ return count($this->scores) > 0; }
     public function getUserScore(){ return $this->hasUserScore; }
+    public function getCountOfReviews(){ return $this->countOfReviews; }
+    public function getReviewerCount(){ return $this->reviewerCount; }
     public function getRating(){
         // calculates mean values of ratings
         $originality = 0;
@@ -114,15 +118,30 @@ class Post
         $score = null;
         $count = count($this->scores);
         if( $count > 0){
+            $origCount = 0;
+            $langCount = 0;
+            $qualCount = 0;
             foreach ($this->scores as $score){
-                $originality += $score->getRatingOriginality();
-                $language += $score->getRatingLanguage();
-                $quality += $score->getRatingQuality();
+                if( $score->getRatingOriginality() > 0 ){
+                    $originality += $score->getRatingOriginality();
+                    $origCount++;
+                }
+                if( $score->getRatingLanguage() > 0 ){
+                    $language += $score->getRatingLanguage();
+                    $langCount++;
+                }
+                if( $score->getRatingQuality() > 0 ){
+                    $quality += $score->getRatingQuality();
+                    $qualCount++;
+                }
             }
+            $count = $origCount > 1 ? $origCount : 1;
             $originality = round($originality / $count, 2);
+            $count = $langCount > 1 ? $langCount : 1;
             $language = round($language / $count, 2);
+            $count = $qualCount > 1 ? $qualCount : 1;
             $quality = round($quality / $count, 2);
-            $total = round(($originality + $language + $quality) / 3);
+            $total = round(($originality + $language + $quality) / 3, 2);
         }
 
         $rating = array(
@@ -131,6 +150,11 @@ class Post
             'quality' => sprintf('%s', $quality),
             'total' => sprintf('%s', $total));
         return $rating;
+    }
+
+    public function getTotal(){
+        $rating = $this->getRating();
+        return $rating['total'];
     }
 
     public function renderOriginality(){
@@ -264,7 +288,17 @@ class Post
     public function setPublishedBy(User $publishedBy){ $this->publishedBy = $publishedBy; }
     public function setDeleted($deleted){ $this->deleted = intval($deleted); }
     public function setCreated($created){ $this->created = $created; }
-    public function setScores($scores){ $this->scores = $scores; }
+    public function setScores($scores){
+        $this->scores = $scores;
+        $this->reviewerCount = count($this->scores);
+        $this->countOfReviews = 0;
+        foreach ($scores as $score){
+            if( $score->getScore() > 0 ){
+                $this->countOfReviews++;
+            }
+        }
+    }
+
     public function setUserScore($userId){
         /** @var Score $score */
         $score = null;

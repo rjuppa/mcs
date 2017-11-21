@@ -87,22 +87,33 @@ class ScoreService extends BaseService
         return $this->getScoreById($postId, $reviewerId);
     }
 
-    public function createScore(Score $score){
-        $sql = "INSERT INTO scores (post_id, reviewer_id, rating_originalty, rating_language, rating_quality) VALUES (:post_id, :reviewer_id, :orig, :lang, :quality)";
+    public function createScore($postId,  $reviewerId){
+        $sql = "INSERT INTO scores (post_id, reviewer_id, rating_originality, rating_language, rating_quality) VALUES (:post_id, :reviewer_id, -1, -1, -1)";
         $stmt = $this->pdo->prepare($sql);
-        $stmt->bindParam(':orig', $orig, PDO::PARAM_INT);
-        $stmt->bindParam(':lang', $lang, PDO::PARAM_INT);
-        $stmt->bindParam(':quality', $quality, PDO::PARAM_INT);
         $stmt->bindParam(':post_id', $postId, PDO::PARAM_INT);
         $stmt->bindParam(':reviewer_id', $reviewerId, PDO::PARAM_INT);
-        $orig = $score->getRatingOriginality();
-        $lang = $score->getRatingLanguage();
-        $quality = $score->getRatingQuality();
-        $postId = $score->getPostId();
-        $reviewerId = $score->getReviewerId();
         $stmt->execute();
         $last_id = $this->pdo->lastInsertId();
         return $last_id;
     }
+
+    public function removeScore($postId,  $reviewerId){
+        $sql = "DELETE FROM scores WHERE post_id = :post_id AND reviewer_id = :reviewer_id;";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':post_id', $postId, PDO::PARAM_INT);
+        $stmt->bindParam(':reviewer_id', $reviewerId, PDO::PARAM_INT);
+        $stmt->execute();
+    }
+
+    public function deleteScore($scoreId = null){
+        $sql = "DELETE FROM scores WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $id = $scoreId;
+        $stmt->execute();
+    }
+
+
+
 
 }

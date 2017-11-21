@@ -14,23 +14,14 @@
 </head>
 
 <body>
-<div class="container" style="height:99%;">
+<div class="container">
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light" style="border-bottom: solid #c09853 1px">
-        <a class="navbar-brand" href="{{ frontUrl }}/home"><strong>KIV-WEB - Conference</strong></a>
-        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <a class="navbar-brand" href="{{ frontUrl }}/posts/public"><strong>KIV-WEB - Conference</strong></a>
+        <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent2"
+                aria-controls="navbarSupportedContent2" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" href="{{ frontUrl }}/posts/list">Články</a>
-            </li>
-        </ul>
-
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-
-        </div>
 
         <div class="collapse navbar-collapse justify-content-end" id="navbarSupportedContent2">
             <ul class="navbar-nav justify-content-end">
@@ -57,7 +48,7 @@
                     </li>
                 {% endif %}
 
-
+                <li class="nav-item"><small class="badge-pill text-danger">{{ authenticatedUser.getTypeText }}</small></li>
             </ul>
         </div>
     </nav>
@@ -67,12 +58,13 @@
     </div>
 
     <hr/>
-    <footer>
-        <small>&copy; 2017, Autor: RADEK JUPPA</small>
-    </footer>
+
 
 </div>
+<footer class="footer">
+    <div class="container"><small>&copy; 2017, Autor: RADEK JUPPA</small></div>
 
+</footer>
 <script src="{{ baseUrl }}/assets/js/jquery3.0.js"></script>
 <script src="{{ baseUrl }}/assets/js/popper.js"></script>
 <script src="{{ baseUrl }}/assets/js/bootstrap.js"></script>

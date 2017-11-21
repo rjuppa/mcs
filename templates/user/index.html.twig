@@ -13,20 +13,20 @@
             <table class="table table-sm table-responsive">
                 <tr>
                     <th>Jméno</th>
-                    <th>Email</th>
+                    <th class="d-none d-md-table-cell">Email</th>
                     <th>Role</th>
-                    <th>Aktivní</th>
+                    <th class="d-none d-md-table-cell">Aktivní</th>
                     <th></th>
                 </tr>
 
                 {% for user in users %}
                 <tr>
                     <td><a href="{{ user.getEditUrl }}">{{ user.getLastName }} {{ user.getFirstName }}</a></td>
-                    <td>{{ user.getEmail }}</td>
+                    <td class="d-none d-md-table-cell">{{ user.getEmail }}</td>
                     <td>{{ user.getTypeText }}</td>
-                    <td>{{ user.getIsActiveText }}</td>
+                    <td class="d-none d-md-table-cell">{{ user.getIsActiveText }}</td>
                     <td>
-                        <a href="{{ user.getDeleteUrl }}" class="btn btn-danger btn-sm">Smazat</a>
+                        <a href="{{ user.getDeleteUrl }}" class="btn btn-danger btn-sm float-right">Smazat</a>
                     </td>
                 </tr>
                 {% endfor %}
