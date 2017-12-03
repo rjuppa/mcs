@@ -16,7 +16,7 @@ use Symfony\Component\HttpKernel\Controller\ControllerResolver;
 use Tracy\Debugger;
 
 define('BASE_URL',     '/mcs/web');
-define('FRONT_URL',    '/mcs/web/front.php');
+define('FRONT_URL',    '/mcs/web'); //  /front.php
 define('PROJ_PATH',    '/Applications/XAMPP/htdocs/mcs');
 
 //Debugger::enable();
