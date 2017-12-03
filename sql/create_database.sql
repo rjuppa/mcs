@@ -1,155 +1,110 @@
--- phpMyAdmin SQL Dump
--- version 4.7.4
--- https://www.phpmyadmin.net/
---
--- Počítač: localhost
--- Vytvořeno: Úte 03. říj 2017, 01:10
--- Verze serveru: 10.1.26-MariaDB
--- Verze PHP: 7.1.9
+-- MySQL Workbench Forward Engineering
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Schema mcs
+-- -----------------------------------------------------
+DROP SCHEMA IF EXISTS `mcs` ;
 
-START TRANSACTION;
-SET time_zone = "+00:00";
+-- -----------------------------------------------------
+-- Schema mcs
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `mcs` DEFAULT CHARACTER SET utf8 ;
+USE `mcs` ;
 
+-- -----------------------------------------------------
+-- Table `mcs`.`posts`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `mcs`.`posts` ;
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+CREATE TABLE IF NOT EXISTS `mcs`.`posts` (
+  `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `title` VARCHAR(100) CHARACTER SET 'utf8' NOT NULL,
+  `slug` VARCHAR(100) CHARACTER SET 'utf8' NOT NULL,
+  `author_id` INT(10) UNSIGNED NOT NULL,
+  `abstract` TEXT CHARACTER SET 'utf8' NOT NULL,
+  `file` MEDIUMBLOB NULL DEFAULT NULL,
+  `file_name` VARCHAR(100) CHARACTER SET 'utf8' NULL DEFAULT NULL,
+  `published` TIMESTAMP NULL DEFAULT NULL,
+  `published_by_id` INT(10) UNSIGNED NULL DEFAULT NULL,
+  `deleted` TINYINT(4) NULL DEFAULT '0',
+  `created` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 6
+DEFAULT CHARACTER SET = utf8
+COLLATE = utf8_czech_ci;
 
---
--- Databáze: `mcs`
---
+CREATE UNIQUE INDEX `UNIQ_SLUG` ON `mcs`.`posts` (`slug` ASC);
 
--- --------------------------------------------------------
+CREATE INDEX `FK_POST_AUTHOR` ON `mcs`.`posts` (`author_id` ASC);
 
---
--- Struktura tabulky `users`
---
-
-CREATE TABLE `users` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `first_name` varchar(50) COLLATE utf8_czech_ci DEFAULT NULL,
-  `last_name` varchar(50) COLLATE utf8_czech_ci NOT NULL,
-  `email` varchar(50) COLLATE utf8_czech_ci NOT NULL,
-  `password_hash` varchar(100) COLLATE utf8_czech_ci DEFAULT NULL,
-  `is_active` bit(1) NOT NULL DEFAULT b'0',
-  `type` tinyint(4) NOT NULL DEFAULT '1',
-  `deleted` bit(1) NOT NULL DEFAULT b'0',
-  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
-
-CREATE TABLE `posts` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `title` varchar(100) COLLATE utf8_czech_ci NOT NULL,
-  `slug` varchar(100) COLLATE utf8_czech_ci NOT NULL,
-  `author_id` int(10) UNSIGNED NOT NULL,
-  `abstract` text COLLATE utf8_czech_ci NOT NULL,
-  `file` mediumblob,
-  `file_name` varchar(100) COLLATE utf8_czech_ci DEFAULT NULL,
-  `published` timestamp NULL DEFAULT NULL,
-  `published_by_id` int(10) UNSIGNED DEFAULT NULL,
-  `deleted` tinyint(4) DEFAULT '0',
-  `created` timestamp NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
-
---
--- Klíče pro tabulku `posts`
---
-ALTER TABLE `posts`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `UNIQ_SLUG` (`slug`),
-  ADD KEY `FK_POST_AUTHOR` (`author_id`),
-  ADD KEY `FK_POST_PUBLISHER` (`published_by_id`);
-
---
--- AUTO_INCREMENT pro tabulku `posts`
---
-ALTER TABLE `posts`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
--- Omezení pro tabulku `posts`
---
-ALTER TABLE `posts`
-  ADD CONSTRAINT `FK_POST_AUTHOR` FOREIGN KEY (`author_id`) REFERENCES `users` (`id`),
-  ADD CONSTRAINT `FK_POST_PUBLISHER` FOREIGN KEY (`published_by_id`) REFERENCES `users` (`id`);
+CREATE INDEX `FK_POST_PUBLISHER` ON `mcs`.`posts` (`published_by_id` ASC);
 
 
+-- -----------------------------------------------------
+-- Table `mcs`.`users`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `mcs`.`users` ;
+
+CREATE TABLE IF NOT EXISTS `mcs`.`users` (
+  `id` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `first_name` VARCHAR(50) CHARACTER SET 'utf8' NULL DEFAULT NULL,
+  `last_name` VARCHAR(50) CHARACTER SET 'utf8' NOT NULL,
+  `email` VARCHAR(50) CHARACTER SET 'utf8' NOT NULL,
+  `password_hash` VARCHAR(100) CHARACTER SET 'utf8' NULL DEFAULT NULL,
+  `is_active` BIT(1) NOT NULL DEFAULT b'0',
+  `type` TINYINT(4) NOT NULL DEFAULT '1',
+  `deleted` BIT(1) NOT NULL DEFAULT b'0',
+  `created` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 16
+DEFAULT CHARACTER SET = utf8
+COLLATE = utf8_czech_ci;
+
+CREATE UNIQUE INDEX `uniq_email` ON `mcs`.`users` (`email` ASC);
 
 
---
--- Struktura tabulky `scores`
---
+-- -----------------------------------------------------
+-- Table `mcs`.`scores`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `mcs`.`scores` ;
 
-CREATE TABLE `scores` (
-  `post_id` int(10) UNSIGNED NOT NULL,
-  `reviewer_id` int(10) UNSIGNED NOT NULL,
-  `rating_originality` tinyint(4) NOT NULL DEFAULT '0',
-  `rating_language` tinyint(4) NOT NULL DEFAULT '0',
-  `rating_quality` tinyint(4) NOT NULL DEFAULT '0',
-  `score` decimal(10,0) NOT NULL DEFAULT '0',
-  `note` varchar(255) COLLATE utf8_czech_ci DEFAULT NULL,
-  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_czech_ci;
+CREATE TABLE IF NOT EXISTS `mcs`.`scores` (
+  `post_id` INT(10) UNSIGNED NOT NULL,
+  `reviewer_id` INT(10) UNSIGNED NOT NULL,
+  `rating_originality` TINYINT(4) NOT NULL DEFAULT '0',
+  `rating_language` TINYINT(4) NOT NULL DEFAULT '0',
+  `rating_quality` TINYINT(4) NOT NULL DEFAULT '0',
+  `score` DECIMAL(10,0) NOT NULL DEFAULT '0',
+  `note` VARCHAR(255) CHARACTER SET 'utf8' NULL DEFAULT NULL,
+  `created` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT `FK_SCORE_POST`
+    FOREIGN KEY (`post_id`)
+    REFERENCES `mcs`.`posts` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `FK_SCORE_USER`
+    FOREIGN KEY (`reviewer_id`)
+    REFERENCES `mcs`.`users` (`id`)
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8
+COLLATE = utf8_czech_ci;
 
---
--- Klíče pro tabulku `scores`
---
-ALTER TABLE `scores`
-  ADD UNIQUE KEY `UK_RATING` (`post_id`,`reviewer_id`) USING BTREE,
-  ADD KEY `IX_SCORE_REVIEWER` (`reviewer_id`) USING BTREE;
+CREATE UNIQUE INDEX `UK_RATING` USING BTREE ON `mcs`.`scores` (`post_id` ASC, `reviewer_id` ASC);
 
---
--- Omezení pro tabulku `scores`
---
-ALTER TABLE `scores`
-  ADD CONSTRAINT `FK_SCORE_POST` FOREIGN KEY (`post_id`) REFERENCES `posts` (`id`),
-  ADD CONSTRAINT `FK_SCORE_REVIEWER` FOREIGN KEY (`reviewer_id`) REFERENCES `users` (`id`);
-
-
-
-
---
--- Vypisuji data pro tabulku `users`
---
-
-INSERT INTO `users` (`id`, `first_name`, `last_name`, `email`, `password_hash`, `is_active`, `type`, `deleted`, `created`) VALUES
-(3, 'Jan', 'Admin', 'admin@email.cz', NULL, b'0', 1, b'0', '2017-10-02 21:32:42'),
-(10, 'Petr', 'Builder', 'pb@email.cz', NULL, b'0', 1, b'0', '2017-10-02 21:52:54'),
-(11, 'Oma', 'Ole', 'pb2@email.cz', NULL, b'0', 1, b'0', '2017-10-02 21:55:30'),
-(12, 'Martin', 'Duna', 'mmmm@email.cz', NULL, b'0', 1, b'0', '2017-10-02 21:56:22'),
-(13, 'David', 'Bowie', 'david@google.cz', NULL, b'0', 1, b'0', '2017-10-02 21:59:36'),
-(14, 'Josef', 'Dvorak', 'pepa@dvorak.cz', NULL, b'0', 1, b'0', '2017-10-02 22:11:18');
-
---
--- Klíče pro exportované tabulky
---
-
---
--- Klíče pro tabulku `users`
---
-ALTER TABLE `users`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `uniq_email` (`email`);
-
---
--- AUTO_INCREMENT pro tabulky
---
-
---
--- AUTO_INCREMENT pro tabulku `users`
---
-ALTER TABLE `users`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+CREATE INDEX `FK_SCORE_USER_idx` ON `mcs`.`scores` (`reviewer_id` ASC);
 
 
-
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;

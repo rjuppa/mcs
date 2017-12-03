@@ -87,6 +87,7 @@ class User
             case 1: return 'AUTHOR';
             case 2: return 'REVIEWER';
             case 4: return 'ADMIN';
+            //case 0: return 'ADMIN';
         }
         throw new \Exception('User Type is not valid. (Supported: ADMIN, AUTHOR, REVIEWER)');
     }

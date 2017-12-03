@@ -162,7 +162,8 @@ class UserController extends Controller
     public function profileAction() {
         $this->doAuthorize(array());
         try{
-            $user = $_SESSION['authenticatedUser'];
+            $user = $this->service->getUserById($this->authUser->getId());
+            $_SESSION['authenticatedUser'] = $user;
         }
         catch(UserNotFoundException $e){
             $context = array('message' => 'Uživatel nebyl nalezen.');
@@ -268,7 +269,10 @@ class UserController extends Controller
      * @return Response
      */
     public function editAction($id){
-        $this->doAuthorize(array('ADMIN'));
+        if( $this->isUserAuthenticated && ($id != $this->authUser->getId()) ){
+            $this->doAuthorize(array('ADMIN'));
+        }
+
         try{
             $user = $this->service->getUserById($id);
         }
@@ -309,8 +313,10 @@ class UserController extends Controller
 
                     $user->setFirstName($firstName);
                     $user->setLastName($lastName);
-                    $user->setType(intval($type));
-                    $user->setIsActive(intval($isActive));
+                    if( $this->authUser->getTypeText() == 'ADMIN' ) {
+                        $user->setType(intval($type));
+                        $user->setIsActive(intval($isActive));
+                    }
                     try{
                         // validation
                         $user->validate();
@@ -349,7 +355,10 @@ class UserController extends Controller
                     }
                 }
             }
-            return $this->redirect('/users/list');
+            if( $this->authUser->getTypeText() == 'ADMIN' ) {
+                return $this->redirect('/users/list');
+            }
+            return $this->redirect('/users/me');
         }
 
         // never happen
