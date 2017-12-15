@@ -439,12 +439,13 @@ class PostController extends Controller
                         $postId = $this->service->createPost($post);
 
                         // SAVE ATTACHMENT TO DB
-                        if( !empty($_FILES['file'])) {
+                        $file = $_FILES['file'];
+                        if( isset($file) && !empty($file['name'])) {
                             // handle an uploaded file
                             $tmpName = $_FILES['file']['tmp_name'];
                             $fp = fopen($tmpName, 'rb'); // read binary
                             $file = file_get_contents($_FILES['file']['tmp_name']);
-                            $filename = addslashes($_FILES['file']['name']);
+                            $filename = $this->getUniqFileName($_FILES['file']['name']);
                             $this->service->attachFile($postId, $filename, $file);
                         }
                     }
@@ -545,17 +546,18 @@ class PostController extends Controller
                     }
 
                     // SAVE ATTACHMENT TO DB
-                    $service = $this->getService();
+                    $this->service = $this->getService();
                     try{
                         $this->service->editPost($post);
 
-                        if( !empty($_FILES['file'])) {
+                        $file = $_FILES['file'];
+                        if( isset($file) && !empty($file['name'])) {
                             // handle an uploaded file
                             $tmpName  = $_FILES['file']['tmp_name'];
                             $fp = fopen($tmpName, 'rb'); // read binary
 
                             $file = file_get_contents($_FILES['file']['tmp_name']); //SQL Injection defence!
-                            $filename = addslashes($_FILES['file']['name']);
+                            $filename = $this->getUniqFileName($_FILES['file']['name']);
                             $this->service->attachFile($post->getId(), $filename, $file);
                         }
                     }
@@ -582,6 +584,10 @@ class PostController extends Controller
 
         // never happen
         return new Response('Bad request', 400);
+    }
+
+    private function getUniqFileName($filename){
+        return sprintf('%s_%s', $_SESSION['authenticatedUser']->getId(), addslashes($filename));
     }
 
     public function deleteAction($id)
